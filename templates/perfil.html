@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}IFound - Meu Perfil{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <!-- Cabeçalho Verde -->
+    <div class="profile-header">
+        <h1>Meu Perfil</h1>
+        
+        <div class="profile-avatar-container">
+            <div class="profile-avatar">
+                {% if perfil.foto_url %}
+                    <img src="{{ perfil.foto_url }}" alt="Foto de {{ perfil.nome_completo }}">
+                {% else %}
+                    <span>Perfil</span>
+                {% endif %}
+            </div>
+
+            <div class="profile-user-info">
+                <h2>{{ perfil.nome_completo|default:user.username }}</h2>
+                <p class="profile-role">{{ perfil.vinculo }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card de Detalhes -->
+    <div class="profile-card-container">
+        <div class="profile-card">
+            <div class="info-group">
+                <p><strong>Matricula:</strong> {{ user.username }}</p>
+                <p><strong>Curso:</strong> {{ perfil.curso|default:"Não informado" }}</p>
+                <p><strong>Turma:</strong> {{ perfil.turma|default:"Não informada" }}</p>
+            </div>
+
+            <hr class="profile-divider">
+
+            <div class="profile-actions">
+                <a href="#" class="action-btn">Editar Perfil</a>
+                <span class="action-separator">|</span>
+                <a href="#" class="action-btn">Editar Foto do Perfil</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

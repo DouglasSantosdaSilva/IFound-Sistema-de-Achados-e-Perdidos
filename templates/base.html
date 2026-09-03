@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IFound - Achados e Perdidos{% endblock %}</title>
+    <!-- Link para o CSS principal -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">
+            <a href="{% url 'index' %}">IFound - Achados e perdidos</a>
+        </div>
+
+        <nav class="nav-links">
+            <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">Página Inicial</a>
+            <a href="#">Meus Itens</a>
+            <a href="#">Cadastro de itens</a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'perfil' %}" class="nav-profile-link" title="Meu Perfil">
+                    <div class="nav-avatar">
+                        {% if user.perfil.foto_url %}
+                            <img src="{{ user.perfil.foto_url }}" alt="Perfil">
+                        {% else %}
+                            <span>{{ user.username|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}">Entrar</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</body>
+</html>
