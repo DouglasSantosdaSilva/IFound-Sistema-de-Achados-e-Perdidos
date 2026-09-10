@@ -91,12 +91,12 @@ def index(request):
     return render(request, 'index.html', {'itens': itens})
 
 
-def detalhar_objeto(request, id):
+def detalhar_item(request, id):
     item = {'id': id, 'nome': f'Objeto #{id}', 'descricao': 'Descrição detalhada do item...', 'imagem': None}
     return render(request, 'detalhar_objeto.html', {'item': item})
 
 
-def todos_objetos(request):
+def todos_itens(request):
     itens = [
         {'id': 1, 'nome': 'Mochila Preta', 'imagem': None},
         {'id': 2, 'nome': 'Garrafa Térmica', 'imagem': None},
