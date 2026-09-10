@@ -99,9 +99,33 @@ def detalhar_item(request, id):
             return redirect('index')
         else:
             messages.error(request, 'Você precisa anexar uma foto de comprovação.')
-            
+
     return render(request, 'detalhar_item.html', {'item': item})
 
 def catalogo(request):
     itens = Item.objects.all().order_by('-data_registro')
     return render(request, 'catalogo.html', {'itens': itens})
+
+@login_required
+def cadastrar_item(request):
+    if request.method == 'POST':
+        nome = request.POST.get('nome')
+        descricao = request.POST.get('descricao')
+        local = request.POST.get('local')
+        data = request.POST.get('data')
+        status = request.POST.get('status')
+        imagem = request.FILES.get('imagem')
+
+        Item.objects.create(
+            nome=nome,
+            descricao=descricao,
+            local=local,
+            data_registro=data,
+            status=status,
+            imagem=imagem,
+            usuario=request.user
+        )
+        messages.success(request, 'Item cadastrado com sucesso!')
+        return redirect('index')
+
+    return render(request, 'cadastrar_item.html')

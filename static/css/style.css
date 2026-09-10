@@ -650,3 +650,125 @@ body {
         margin-right: auto;
     }
 }
+
+/* Configuração da Página */
+body {
+    background-color: #e9ecef;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Card Central do Formulário */
+.form-card {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.form-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 30px;
+}
+
+/* Campos do Formulário */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #222222;
+    font-size: 15px;
+}
+
+/* Força largura total para evitar encolhimento */
+.form-input {
+    display: block !important;
+    width: 100% !important;
+    background-color: #e9ecef !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 12px 14px !important;
+    font-size: 15px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+.form-input:focus {
+    background-color: #dee2e6 !important;
+}
+
+.form-textarea {
+    resize: vertical;
+}
+
+.form-file {
+    padding: 10px 14px !important;
+}
+
+/* Lado a Lado: Local e Data */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-col {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Opções Achei / Perdi */
+.status-options {
+    display: inline-flex;
+    gap: 25px;
+    background-color: #e9ecef;
+    padding: 10px 20px;
+    border-radius: 8px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 0;
+    color: #222222;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: #00a859;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+/* Botão Cadastrar */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn-submit {
+    background-color: #00a859;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+    background-color: #008f4c;
+}

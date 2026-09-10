@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="form-card">
+    <h2 class="form-title">Cadastrar Novo Item (Achado/Perdido)</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Tipo do Objeto -->
+        <div class="form-group">
+            <label for="nome" class="form-label">Tipo do Objeto:</label>
+            <input type="text" name="nome" id="nome" class="form-input" required placeholder="Ex: Chave, Mochila, Caderno">
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+            <label for="descricao" class="form-label">Descrição:</label>
+            <textarea name="descricao" id="descricao" rows="3" class="form-input form-textarea" required placeholder="Detalhes do objeto..."></textarea>
+        </div>
+
+        <!-- Local e Data -->
+        <div class="form-row form-group">
+            <div class="form-col">
+                <label for="local" class="form-label">Local:</label>
+                <input type="text" name="local" id="local" class="form-input" required placeholder="Ex: Biblioteca, Bloco A">
+            </div>
+            <div class="form-col">
+                <label for="data" class="form-label">Data:</label>
+                <input type="date" name="data" id="data" class="form-input" required>
+            </div>
+        </div>
+
+        <!-- Achei ou Perdi -->
+        <div class="form-group">
+            <label class="form-label">Você achou ou perdeu?</label>
+            <div class="status-options">
+                <label class="radio-label">
+                    <input type="radio" name="status" id="achei" value="achei" checked> Achei
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="status" id="perdi" value="perdi"> Perdi
+                </label>
+            </div>
+        </div>
+
+        <!-- Foto do Objeto -->
+        <div class="form-group">
+            <label for="imagem" class="form-label">Foto do Objeto:</label>
+            <input type="file" name="imagem" id="imagem" class="form-input form-file" accept="image/*">
+        </div>
+
+        <!-- Botão Cadastrar -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Cadastrar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
