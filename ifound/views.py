@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Perfil, Item 
+from .models import Perfil, Item, Solicitacao
 
 SUAP_AUTH_URL = 'https://suap.ifrn.edu.br/api/v2/autenticacao/token/'
 SUAP_DADOS_URL = 'https://suap.ifrn.edu.br/api/v2/minhas-informacoes/meus-dados/'
@@ -82,10 +82,25 @@ def index(request):
     return render(request, 'index.html', {'itens': itens})
 
 
+@login_required
 def detalhar_item(request, id):
     item = get_object_or_404(Item, id=id)
-    return render(request, 'detalhar_item.html', {'item': item})
 
+    if request.method == 'POST':
+        foto = request.FILES.get('foto_comprovante')
+
+        if foto:
+            Solicitacao.objects.create(
+                item=item,
+                solicitante=request.user,
+                foto_comprovante=foto
+            )
+            messages.success(request, 'Sua solicitação e comprovante foram enviados com sucesso!')
+            return redirect('index')
+        else:
+            messages.error(request, 'Você precisa anexar uma foto de comprovação.')
+            
+    return render(request, 'detalhar_item.html', {'item': item})
 
 def catalogo(request):
     itens = Item.objects.all().order_by('-data_registro')

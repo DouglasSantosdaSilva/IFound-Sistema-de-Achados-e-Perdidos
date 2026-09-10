@@ -13,5 +13,5 @@ urlpatterns = [
     path('catalogo/', views.catalogo, name='catalogo'),
     path('meus-itens/', temp_view, name='meus_itens'),
     path('cadastrar/', temp_view, name='cadastrar_item'),
-    path('item/<int:pk>/', views.detalhar_item, name='detalhar_item'),
+    path('item/<int:id>/', views.detalhar_item, name='detalhar_item'),
 ]

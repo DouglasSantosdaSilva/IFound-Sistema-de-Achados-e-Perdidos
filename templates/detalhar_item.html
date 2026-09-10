@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="item-details-page">
+    <div class="item-details-container">
+        <h1>Detalhes do Item</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="item-details-content">
+                
+                <!-- Coluna Esquerda: ID, Foto principal e Upload de Confirmação -->
+                <div class="item-image-section">
+                    <p class="item-id"><strong>ID: #{{ item.id|stringformat:"04d" }}</strong></p>
+                    
+                    <div class="item-image">
+                        {% if item.imagem %}
+                            <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <span>Imagem do objeto</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-confirmation">
+                        <h3>Confirme que esse objeto é seu!</h3>
+                        <p>Adicione uma foto:</p>
+                        
+                        <label class="photo-upload">
+                            <input type="file" name="foto_comprovante" accept="image/*" required>
+                            <span>Obrigatório!</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Informações do Objeto -->
+                <div class="item-info">
+                    <p><strong>Tipo:</strong> {{ item.nome }}</p>
+
+                    <div class="item-description">
+                        <strong>Descrição:</strong>
+                        <p>{{ item.descricao }}</p>
+                    </div>
+
+                    <div class="item-location">
+                        <strong>Onde foi encontrado:</strong>
+                        <p>{{ item.local }}</p>
+                    </div>
+
+                    <div class="item-status">
+                        <strong>Status:</strong>
+                        <span class="status-lost">{{ item.get_status_display }}</span>
+                    </div>
+
+                    <button type="submit" class="claim-btn">Isto é meu!</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

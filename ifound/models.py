@@ -29,6 +29,22 @@ class Item(models.Model):
     
     registrado_por = models.ForeignKey(User, on_delete=models.CASCADE, related_name='itens_registrados')
 
+class Solicitacao(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('recusado', 'Recusado'),
+    ]
+
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='solicitacoes')
+    solicitante = models.ForeignKey(User, on_delete=models.CASCADE, related_name='minhas_solicitacoes')
+    foto_comprovante = models.ImageField(upload_to='comprovantes/')
+    data_solicitacao = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+
+    def __str__(self):
+        return f"Solicitação de {self.solicitante.username} para {self.item.nome}"
+        
     def __str__(self):
         return f"{self.nome} ({self.get_status_display()})"
   
