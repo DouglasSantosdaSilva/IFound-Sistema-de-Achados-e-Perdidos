@@ -1,44 +1,43 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}Página Inicial - iFound{% endblock %}
 
 {% block content %}
-<!-- Banner Hero com Busca -->
-<section class="hero-section">
-    <h1>Perdeu algo no campus ❓</h1>
-    <form method="GET" action="{% url 'index' %}" class="search-box">
-        <input type="text" name="q" placeholder="" value="{{ request.GET.q|default:'' }}">
-        <button type="submit" class="search-btn">
-            🔍
-        </button>
-    </form>
-</section>
+    <!-- Banner de Busca -->
+    <section class="hero">
+        <h1>Perdeu algo no campus ❓</h1>
+        <form action="{% url 'index' %}" method="GET" class="search-box">
+            <input type="text" name="q" placeholder="" value="{{ request.GET.q }}">
+            <button type="submit"><i class="bi bi-search"></i></button>
+        </form>
+    </section>
 
-<!-- Seção de Itens Recentes -->
-<section class="recent-items-container">
-    <h2>Itens recentes</h2>
+    <!-- Seção de Itens Recentes -->
+    <main class="container">
+        <h2>Itens recentes</h2>
 
-    <div class="cards-grid">
-        {% for item in itens %}
-        <div class="item-card">
-            <div class="card-image">
-                {% if item.imagem %}
-                    <img src="{{ item.imagem.url }}" alt="{{ item.nome }}">
-                {% else %}
-                    <span>imagem do item</span>
-                {% endif %}
-            </div>
-            <h3>{{ item.nome }}</h3>
-            <!-- Link dinâmico para a página de detalhes usando o id do item -->
-            <a href="{% url 'detalhar_objeto' item.id %}" class="btn-detalhar">Detalhar</a>
+        <div class="cards-grid">
+            {% for item in itens %}
+                <div class="card">
+                    {% if item.imagem %}
+                        <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="card-img">
+                    {% else %}
+                        <div class="card-img">imagem do item</div>
+                    {% endif %}
+                    
+                    <div class="card-title">{{ item.nome }}</div>
+                    
+                    <!-- Botão para Detalhar -->
+                    <a href="{% url 'detalhar_item' item.id %}" class="btn">Detalhar</a>
+                </div>
+            {% empty %}
+                <p>Nenhum item encontrado.</p>
+            {% endfor %}
         </div>
-        {% empty %}
-        <p class="empty-msg">Nenhum item encontrado.</p>
-        {% endfor %}
-    </div>
 
-    <!-- Link para a página com todos os objetos -->
-    <div class="more-items-container">
-        <a href="{% url 'todos_objetos' %}" class="btn-mais-itens">Mais itens</a>
-    </div>
-</section>
+        <!-- Botão Mais Itens -->
+        <div class="more-items-container">
+            <a href="{% url 'todos_itens' %}" class="btn">Mais itens</a>
+        </div>
+    </main>
 {% endblock %}
