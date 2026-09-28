@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Meus Itens - iFound{% endblock %}
+
+{% block content %}
+<section class="my-items-page">
+    <div class="my-items-panel">
+        <h1 class="my-items-title">Meus Itens</h1>
+
+        <div class="my-items-subheader">
+            <h2>Meus itens (perdidos)</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Data</th>
+                        <th>Detalhes</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="itens-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<script>
+    const itens = {{ itens_json|safe }};
+</script>
+<script src="{% static 'js/meus_itens.js' %}"></script>
+{% endblock %}

@@ -1,3 +1,4 @@
+import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -100,7 +101,7 @@ def detalhar_item(request, id):
         else:
             messages.error(request, 'Você precisa anexar uma foto de comprovação.')
 
-    return render(request, 'detalhar_item.html', {'item': item})
+    return render(request, 'detalhes_item.html', {'item': item})
 
 def catalogo(request):
     itens = Item.objects.all().order_by('-data_registro')
@@ -129,3 +130,46 @@ def cadastrar_item(request):
         return redirect('index')
 
     return render(request, 'cadastrar_item.html')
+
+
+@login_required
+def meus_itens(request):
+    itens_usuarios = Item.objects.filter(usuario=request.user).order_by('-criado_em')
+
+    itens = [
+        {
+            'id': '#0001',
+            'titulo': 'Celular',
+            'data': '31/08/2026',
+            'detalhes': 'Redmi A5 Dourado',
+            'status': 'Perdido'
+        },
+        {
+            'id': '#0011',
+            'titulo': 'Garrafa',
+            'data': '22/06/2026',
+            'detalhes': 'Tupperware Rosa 1l',
+            'status': 'Encontrado'
+        },
+        {
+            'id': '#0678',
+            'titulo': 'Moletom',
+            'data': '31/06/2026',
+            'detalhes': 'Moletom preto Nike',
+            'status': 'Em análise'
+        },
+    ]
+
+    if itens_usuarios.exists():
+        itens = [
+            {
+                'id': f"#{str(item.id).zfill(4)}",
+                'titulo': item.nome,
+                'data': item.data_registro.strftime('%d/%m/%Y') if item.data_registro else 'Não informado',
+                'detalhes': item.descricao,
+                'status': 'Perdido' if item.status == 'perdi' else 'Encontrado' if item.status == 'achei' else 'Em análise'
+            }
+            for item in itens_usuarios
+        ]
+
+    return render(request, 'meus_itens.html', {'itens_json': json.dumps(itens)})

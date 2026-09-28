@@ -772,3 +772,120 @@ body {
 .btn-submit:hover {
     background-color: #008f4c;
 }
+
+/* --- Meus Itens --- */
+.my-items-page {
+    min-height: calc(100vh - 60px);
+    background-color: #e9e9e9;
+    padding: 30px 20px 50px;
+}
+
+.my-items-panel {
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: #f3f3f3;
+    border-radius: 0;
+    padding: 28px 28px 18px;
+}
+
+.my-items-title {
+    margin: 0 0 18px;
+    font-size: 2rem;
+    color: #111;
+    font-weight: 700;
+}
+
+.my-items-subheader {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #d7d7d7;
+    margin-bottom: 22px;
+}
+
+.my-items-subheader h2 {
+    font-size: 1.2rem;
+    color: #1c1c1c;
+    font-weight: 700;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.items-table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+    background-color: transparent;
+}
+
+.items-table th,
+.items-table td {
+    padding: 16px 14px;
+    border-bottom: 1px solid #dcdcdc;
+    text-align: left;
+    font-size: 0.96rem;
+    color: #1c1c1c;
+}
+
+.items-table thead th {
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    color: #333;
+    font-weight: 700;
+    background-color: transparent;
+}
+
+.items-table tbody tr:hover {
+    background-color: rgba(11, 158, 74, 0.03);
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 90px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.status-perdido {
+    background-color: #f9d7d7;
+    color: #7a1f1f;
+}
+
+.status-encontrado {
+    background-color: #dff4e8;
+    color: #145b36;
+}
+
+.status-analise {
+    background-color: #f5ebd2;
+    color: #5a4b1a;
+}
+
+@media (max-width: 700px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 18px;
+    }
+
+    .navbar-nav {
+        flex-wrap: wrap;
+        gap: 12px 18px;
+    }
+
+    .my-items-panel {
+        padding: 20px 16px;
+    }
+
+    .my-items-title {
+        font-size: 1.6rem;
+    }
+}

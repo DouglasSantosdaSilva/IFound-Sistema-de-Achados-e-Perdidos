@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}iFound - Achados e Perdidos{% endblock %}</title>
     
     <!-- Ícones do Bootstrap Icons -->
@@ -11,6 +12,32 @@
     
     <!-- CSS Estático do Projeto -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function getCsrfHeaders(extraHeaders = {}) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || getCookie('csrftoken');
+            return {
+                ...extraHeaders,
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+        }
+    </script>
 </head>
 <body>
 
@@ -20,7 +47,7 @@
         <nav>
             <ul class="navbar-nav">
                 <li>
-                    <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
                         Página Inicial
                     </a>
                 </li>
