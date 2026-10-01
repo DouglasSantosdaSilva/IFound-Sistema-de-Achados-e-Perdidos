@@ -1,125 +1,267 @@
 /**
- * iFound - Login Page Interactions
- * Handles tab switching and password visibility toggle
+ * iFound - Login e Cadastro
+ * Interações da página de autenticação
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Tab switching functionality
+
+    // ==========================================
+    // TROCA DE ABAS
+    // ==========================================
+
     const authTabs = document.querySelectorAll('.auth-tab');
     const authTabContents = document.querySelectorAll('.auth-tab-content');
 
     authTabs.forEach(tab => {
         tab.addEventListener('click', () => {
+
             const tabName = tab.dataset.tab;
 
-            // Remove active class from all tabs and contents
-            authTabs.forEach(t => t.classList.remove('active'));
-            authTabContents.forEach(content => content.classList.remove('active'));
+            authTabs.forEach(t => {
+                t.classList.remove('active');
+            });
 
-            // Add active class to clicked tab
+            authTabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
             tab.classList.add('active');
 
-            // Add active class to corresponding content
             const targetContent = document.getElementById(`${tabName}-tab`);
+
             if (targetContent) {
                 targetContent.classList.add('active');
             }
         });
     });
 
-    // Password visibility toggle
+
+    // ==========================================
+    // MOSTRAR / OCULTAR SENHA
+    // ==========================================
+
     const passwordToggles = document.querySelectorAll('.password-toggle');
 
     passwordToggles.forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            const passwordInput = toggle.parentElement.querySelector('.form-input');
+
+        toggle.addEventListener('click', (event) => {
+
+            event.preventDefault();
+
+            const passwordInput =
+                toggle.parentElement.querySelector('.form-input');
+
             const icon = toggle.querySelector('i');
 
+            if (!passwordInput) {
+                return;
+            }
+
             if (passwordInput.type === 'password') {
+
                 passwordInput.type = 'text';
+
                 icon.classList.remove('bi-eye');
                 icon.classList.add('bi-eye-slash');
-                toggle.setAttribute('aria-label', 'Ocultar senha');
+
+                toggle.setAttribute(
+                    'aria-label',
+                    'Ocultar senha'
+                );
+
             } else {
+
                 passwordInput.type = 'password';
+
                 icon.classList.remove('bi-eye-slash');
                 icon.classList.add('bi-eye');
-                toggle.setAttribute('aria-label', 'Mostrar senha');
+
+                toggle.setAttribute(
+                    'aria-label',
+                    'Mostrar senha'
+                );
             }
         });
     });
 
-    // Remember me checkbox
-    const rememberCheckbox = document.getElementById('remember');
-    if (rememberCheckbox) {
-        // Load remembered value from localStorage
-        const remembered = localStorage.getItem('ifound_remember_me') === 'true';
+
+    // ==========================================
+    // LEMBRAR MATRÍCULA
+    // ==========================================
+
+    const rememberCheckbox =
+        document.getElementById('remember');
+
+    const usernameInput =
+        document.getElementById('username');
+
+    if (rememberCheckbox && usernameInput) {
+
+        const remembered =
+            localStorage.getItem('ifound_remember_me') === 'true';
+
         if (remembered) {
+
             rememberCheckbox.checked = true;
-            const username = localStorage.getItem('ifound_username');
-            const usernameInput = document.getElementById('username');
-            if (usernameInput && username) {
-                usernameInput.value = username;
+
+            const savedUsername =
+                localStorage.getItem('ifound_username');
+
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
             }
         }
 
-        // Save on form submit
-        const form = document.querySelector('.auth-form');
-        if (form) {
-            form.addEventListener('submit', () => {
-                const usernameInput = document.getElementById('username');
-                if (rememberCheckbox.checked && usernameInput) {
-                    localStorage.setItem('ifound_username', usernameInput.value);
-                    localStorage.setItem('ifound_remember_me', 'true');
+        const loginForm =
+            usernameInput.closest('form');
+
+        if (loginForm) {
+
+            loginForm.addEventListener('submit', () => {
+
+                if (rememberCheckbox.checked) {
+
+                    localStorage.setItem(
+                        'ifound_username',
+                        usernameInput.value
+                    );
+
+                    localStorage.setItem(
+                        'ifound_remember_me',
+                        'true'
+                    );
+
                 } else {
-                    localStorage.removeItem('ifound_username');
-                    localStorage.removeItem('ifound_remember_me');
+
+                    localStorage.removeItem(
+                        'ifound_username'
+                    );
+
+                    localStorage.removeItem(
+                        'ifound_remember_me'
+                    );
                 }
             });
         }
     }
 
-    // Forgot password link (placeholder)
-    const forgotPasswordLink = document.querySelector('.forgot-password');
+
+    // ==========================================
+    // RECUPERAÇÃO DE SENHA
+    // ==========================================
+
+    const forgotPasswordLink =
+        document.querySelector('.forgot-password');
+
     if (forgotPasswordLink) {
-        forgotPasswordLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            alert('Por favor, acesse o portal SUAP para recuperar sua senha: https://suap.ifrn.edu.br');
+
+        forgotPasswordLink.addEventListener('click', (event) => {
+
+            event.preventDefault();
+
+            alert(
+                'A recuperação de senha ainda não está disponível. ' +
+                'Entre em contato com a administração do iFound.'
+            );
         });
     }
 
-    // Form validation feedback
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
 
-    if (usernameInput) {
-        usernameInput.addEventListener('blur', () => {
-            if (usernameInput.value.trim() === '') {
-                usernameInput.classList.add('invalid');
+    // ==========================================
+    // VALIDAÇÃO DOS CAMPOS
+    // ==========================================
+
+    const formInputs =
+        document.querySelectorAll('.form-input');
+
+    formInputs.forEach(input => {
+
+        input.addEventListener('blur', () => {
+
+            if (
+                input.hasAttribute('required') &&
+                input.value.trim() === ''
+            ) {
+
+                input.classList.add('invalid');
+
             } else {
-                usernameInput.classList.remove('invalid');
+
+                input.classList.remove('invalid');
+            }
+        });
+
+        input.addEventListener('input', () => {
+
+            if (input.value.trim() !== '') {
+                input.classList.remove('invalid');
+            }
+        });
+    });
+
+
+    // ==========================================
+    // VALIDAÇÃO DAS SENHAS NO CADASTRO
+    // ==========================================
+
+    const signupForm =
+        document.querySelector('#signup-tab form');
+
+    const signupPassword =
+        document.getElementById('signup_password');
+
+    const passwordConfirm =
+        document.getElementById('password_confirm');
+
+    if (
+        signupForm &&
+        signupPassword &&
+        passwordConfirm
+    ) {
+
+        signupForm.addEventListener('submit', (event) => {
+
+            if (
+                signupPassword.value !==
+                passwordConfirm.value
+            ) {
+
+                event.preventDefault();
+
+                passwordConfirm.classList.add('invalid');
+
+                alert('As senhas não coincidem.');
+
+                passwordConfirm.focus();
+
+            } else {
+
+                passwordConfirm.classList.remove('invalid');
             }
         });
     }
 
-    if (passwordInput) {
-        passwordInput.addEventListener('blur', () => {
-            if (passwordInput.value.trim() === '') {
-                passwordInput.classList.add('invalid');
-            } else {
-                passwordInput.classList.remove('invalid');
-            }
-        });
-    }
 
-    // Smooth scroll to form on error
-    const alertMessages = document.querySelectorAll('.alert-error');
+    // ==========================================
+    // EXIBIR MENSAGENS DE ERRO
+    // ==========================================
+
+    const alertMessages =
+        document.querySelectorAll('.alert-error');
+
     if (alertMessages.length > 0) {
-        // Scroll to alerts after short delay to ensure DOM is ready
+
         setTimeout(() => {
-            alertMessages[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            const firstMessage =
+                alertMessages[0];
+
+            firstMessage.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
         }, 100);
     }
+
 });

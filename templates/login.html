@@ -1,193 +1,470 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}IFound - Login{% endblock %}
+{% block title %}IFound - Acesso{% endblock %}
 
 {% block content %}
 <div class="login-wrapper">
-    <!-- Left Side: Institutional Branding -->
+
+    <!-- LADO ESQUERDO -->
     <div class="login-left">
         <div class="login-institutional">
+
             <div class="institutional-content">
+
                 <div class="ifound-branding">
                     <i class="bi bi-search"></i>
                     <h1>iFound</h1>
                 </div>
-                <p class="institutional-tagline">Conectando pessoas e objetos no campus</p>
-                
+
+                <p class="institutional-tagline">
+                    Conectando pessoas e objetos no campus
+                </p>
+
                 <div class="benefits-section">
+
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="bi bi-search"></i>
                         </div>
+
                         <div class="benefit-text">
                             <h4>Busque com Facilidade</h4>
                             <p>Procure por itens perdidos no campus</p>
                         </div>
                     </div>
-                    
+
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="bi bi-plus-lg"></i>
                         </div>
+
                         <div class="benefit-text">
                             <h4>Registre Achados</h4>
                             <p>Divulgue itens encontrados para ajudar outros</p>
                         </div>
                     </div>
-                    
+
                     <div class="benefit-item">
                         <div class="benefit-icon">
                             <i class="bi bi-people-fill"></i>
                         </div>
+
                         <div class="benefit-text">
                             <h4>Comunidade Unida</h4>
                             <p>Recupere seus pertences com segurança</p>
                         </div>
                     </div>
+
                 </div>
             </div>
-            
-            <!-- Campus Image Background -->
+
             <div class="institutional-image">
-                <img src="{% static 'img/campus-pagina-inicial.jpg' %}" alt="Campus IFRN" class="campus-img">
+                <img
+                    src="{% static 'img/campus-pagina-inicial.jpg' %}"
+                    alt="Campus IFRN"
+                    class="campus-img"
+                >
+
                 <div class="image-overlay"></div>
             </div>
+
         </div>
     </div>
 
-    <!-- Right Side: Authentication Card -->
+
+    <!-- LADO DIREITO -->
     <div class="login-right">
+
         <div class="auth-card">
-            <!-- Tab Navigation -->
+
+            <!-- ABAS -->
             <div class="auth-tabs">
-                <button type="button" class="auth-tab active" data-tab="login">
-                    <i class="bi bi-box-arrow-in-right"></i> Entrar
+
+                <button
+                    type="button"
+                    class="auth-tab {% if active_tab != 'signup' %}active{% endif %}"
+                    data-tab="login"
+                >
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Entrar
                 </button>
-                <button type="button" class="auth-tab" data-tab="signup">
-                    <i class="bi bi-person-plus"></i> Cadastro
+
+                <button
+                    type="button"
+                    class="auth-tab {% if active_tab == 'signup' %}active{% endif %}"
+                    data-tab="signup"
+                >
+                    <i class="bi bi-person-plus"></i>
+                    Cadastro
                 </button>
+
             </div>
 
-            <!-- Login Tab -->
-            <div class="auth-tab-content active" id="login-tab">
-                <h2>Acesse sua Conta</h2>
-                
-                {% if messages %}
-                    <div class="auth-messages">
-                        {% for message in messages %}
-                            <div class="alert alert-error">
-                                <i class="bi bi-exclamation-circle"></i>
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
 
-                <form method="POST" action="{% url 'login' %}" class="auth-form">
+            <!-- MENSAGENS -->
+            {% if messages %}
+                <div class="auth-messages">
+
+                    {% for message in messages %}
+                        <div class="alert alert-error">
+                            <i class="bi bi-exclamation-circle"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% endif %}
+
+
+            <!-- ========================= -->
+            <!-- ABA LOGIN -->
+            <!-- ========================= -->
+
+            <div
+                class="auth-tab-content {% if active_tab != 'signup' %}active{% endif %}"
+                id="login-tab"
+            >
+
+                <h2>Acesse sua Conta</h2>
+
+                <form
+                    method="POST"
+                    action="{% url 'login' %}"
+                    class="auth-form"
+                >
+
                     {% csrf_token %}
-                    
+
+                    <!-- MATRÍCULA -->
                     <div class="form-group">
+
                         <label for="username">
                             <i class="bi bi-person-badge"></i>
-                            Matrícula SUAP
+                            Matrícula
                         </label>
-                        <input 
-                            type="text" 
-                            id="username" 
-                            name="username" 
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
                             placeholder="Digite sua matrícula"
-                            required 
-                            autocomplete="off"
+                            required
+                            autocomplete="username"
                             class="form-input"
+                            value="{{ request.POST.username|default:'' }}"
                         >
+
                     </div>
 
+
+                    <!-- SENHA -->
                     <div class="form-group">
+
                         <label for="password">
                             <i class="bi bi-lock"></i>
                             Senha
                         </label>
+
                         <div class="password-wrapper">
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
                                 placeholder="Digite sua senha"
-                                required 
+                                required
+                                autocomplete="current-password"
                                 class="form-input"
                             >
-                            <button type="button" class="password-toggle" aria-label="Mostrar/Ocultar senha">
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                aria-label="Mostrar/Ocultar senha"
+                            >
                                 <i class="bi bi-eye"></i>
                             </button>
+
                         </div>
+
                     </div>
 
+
+                    <!-- OPÇÕES -->
                     <div class="form-options">
+
                         <label class="checkbox-label">
-                            <input type="checkbox" name="remember" id="remember">
+
+                            <input
+                                type="checkbox"
+                                name="remember"
+                                id="remember"
+                            >
+
                             Lembrar-me neste dispositivo
+
                         </label>
-                        <a href="#" class="forgot-password">Esqueceu a senha?</a>
+
+                        <a href="#" class="forgot-password">
+                            Esqueceu a senha?
+                        </a>
+
                     </div>
 
-                    <button type="submit" class="btn-auth btn-login">
-                        Entrar com SUAP
+
+                    <!-- BOTÃO -->
+                    <button
+                        type="submit"
+                        class="btn-auth btn-login"
+                    >
+                        Entrar
                     </button>
+
                 </form>
 
+
                 <div class="auth-footer">
-                    <p>Utilizamos autenticação via <strong>SUAP IFRN</strong> para sua segurança</p>
+
+                    <p>
+                        Acesse sua conta utilizando a matrícula e a senha
+                        cadastradas no iFound.
+                    </p>
+
                 </div>
+
             </div>
 
-            <!-- Signup Tab (Info) -->
-            <div class="auth-tab-content" id="signup-tab">
+
+            <!-- ========================= -->
+            <!-- ABA CADASTRO -->
+            <!-- ========================= -->
+
+            <div
+                class="auth-tab-content {% if active_tab == 'signup' %}active{% endif %}"
+                id="signup-tab"
+            >
+
                 <h2>Criar Conta</h2>
-                
-                <div class="signup-info">
-                    <div class="info-block">
-                        <div class="info-icon">
-                            <i class="bi bi-info-circle"></i>
-                        </div>
-                        <h3>Autenticação Institucional</h3>
-                        <p>
-                            O iFound utiliza o sistema SUAP (Sistema de Administração de Pessoal) da IFRN para autenticação. 
-                            Você não precisa criar uma conta separada.
-                        </p>
+
+                <p class="signup-description">
+                    Cadastre-se no iFound para registrar e acompanhar
+                    seus itens.
+                </p>
+
+
+                <form
+                    method="POST"
+                    action="{% url 'cadastro' %}"
+                    class="auth-form"
+                >
+
+                    {% csrf_token %}
+
+
+                    <!-- NOME -->
+                    <div class="form-group">
+
+                        <label for="nome_completo">
+                            <i class="bi bi-person"></i>
+                            Nome completo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="nome_completo"
+                            name="nome_completo"
+                            placeholder="Digite seu nome completo"
+                            required
+                            autocomplete="name"
+                            class="form-input"
+                            value="{{ request.POST.nome_completo|default:'' }}"
+                        >
+
                     </div>
 
-                    <div class="info-block">
-                        <div class="info-icon">
-                            <i class="bi bi-key"></i>
-                        </div>
-                        <h3>Credenciais SUAP</h3>
-                        <p>
-                            Use suas credenciais de matrícula e senha do SUAP. Se você não possui uma conta ou esqueceu 
-                            suas credenciais, acesse o portal do SUAP.
-                        </p>
+
+                    <!-- MATRÍCULA -->
+                    <div class="form-group">
+
+                        <label for="matricula">
+                            <i class="bi bi-person-badge"></i>
+                            Matrícula
+                        </label>
+
+                        <input
+                            type="text"
+                            id="matricula"
+                            name="matricula"
+                            placeholder="Digite sua matrícula"
+                            required
+                            autocomplete="username"
+                            class="form-input"
+                            value="{{ request.POST.matricula|default:'' }}"
+                        >
+
                     </div>
 
-                    <div class="info-block">
-                        <div class="info-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <h3>Segurança Garantida</h3>
-                        <p>
-                            Seus dados são protegidos pela infraestrutura institucional do IFRN. Nenhuma senha é armazenada 
-                            no iFound.
-                        </p>
+
+                    <!-- E-MAIL -->
+                    <div class="form-group">
+
+                        <label for="email">
+                            <i class="bi bi-envelope"></i>
+                            E-mail
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Digite seu e-mail"
+                            required
+                            autocomplete="email"
+                            class="form-input"
+                            value="{{ request.POST.email|default:'' }}"
+                        >
+
                     </div>
 
-                    <a href="https://suap.ifrn.edu.br" target="_blank" class="btn-auth btn-suap">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                        Acessar Portal SUAP
-                    </a>
+
+                    <!-- CURSO -->
+                    <div class="form-group">
+
+                        <label for="curso">
+                            <i class="bi bi-mortarboard"></i>
+                            Curso
+                        </label>
+
+                        <input
+                            type="text"
+                            id="curso"
+                            name="curso"
+                            placeholder="Ex.: Informática para Internet"
+                            required
+                            class="form-input"
+                            value="{{ request.POST.curso|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <!-- TURMA -->
+                    <div class="form-group">
+
+                        <label for="turma">
+                            <i class="bi bi-people"></i>
+                            Turma
+                        </label>
+
+                        <input
+                            type="text"
+                            id="turma"
+                            name="turma"
+                            placeholder="Ex.: 4V"
+                            required
+                            class="form-input"
+                            value="{{ request.POST.turma|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <!-- SENHA -->
+                    <div class="form-group">
+
+                        <label for="signup_password">
+                            <i class="bi bi-lock"></i>
+                            Senha
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                id="signup_password"
+                                name="password"
+                                placeholder="Crie uma senha"
+                                required
+                                autocomplete="new-password"
+                                class="form-input"
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                aria-label="Mostrar/Ocultar senha"
+                            >
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONFIRMAR SENHA -->
+                    <div class="form-group">
+
+                        <label for="password_confirm">
+                            <i class="bi bi-lock-fill"></i>
+                            Confirmar senha
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                id="password_confirm"
+                                name="password_confirm"
+                                placeholder="Digite a senha novamente"
+                                required
+                                autocomplete="new-password"
+                                class="form-input"
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                aria-label="Mostrar/Ocultar senha"
+                            >
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BOTÃO CADASTRO -->
+                    <button
+                        type="submit"
+                        class="btn-auth btn-login"
+                    >
+                        <i class="bi bi-person-plus"></i>
+                        Criar minha conta
+                    </button>
+
+                </form>
+
+
+                <div class="auth-footer">
+
+                    <p>
+                        Ao criar sua conta, seus dados serão armazenados
+                        no sistema iFound.
+                    </p>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 <script src="{% static 'js/login.js' %}"></script>
+
 {% endblock %}
