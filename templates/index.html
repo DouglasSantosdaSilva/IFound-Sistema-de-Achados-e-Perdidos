@@ -3,41 +3,69 @@
 {% block title %}Página Inicial - iFound{% endblock %}
 
 {% block content %}
-    <!-- Banner de Busca -->
-    <section class="hero">
-        <h1>Perdeu algo no campus ❓</h1>
-        <form action="{% url 'index' %}" method="GET" class="search-box">
-            <input type="text" name="q" placeholder="" value="{{ request.GET.q }}">
-            <button type="submit"><i class="bi bi-search"></i></button>
-        </form>
+    <section class="hero-home">
+        <div class="container hero-inner">
+            <h1>Perdeu algo no campus?</h1>
+            <p>Encontre itens perdidos ou cadastre algo que você encontrou.</p>
+
+            <form class="search-box" id="searchForm" method="get" action="{% url 'index' %}">
+                <span class="search-icon"><i class="bi bi-search"></i></span>
+                <input type="search" id="searchInput" name="q" value="{{ query }}" placeholder="Pesquise por um item..." autocomplete="off">
+            </form>
+
+            <div id="searchStatus" class="search-status" aria-live="polite"></div>
+        </div>
     </section>
 
-    <!-- Seção de Itens Recentes -->
-    <main class="container">
-        <h2>Itens recentes</h2>
+    <main class="container page-home">
+        <div class="section-header">
+            <h2>Itens recentes</h2>
+        </div>
 
-        <div class="cards-grid">
+        <div id="cardsGrid" class="cards-grid" aria-live="polite">
             {% for item in itens %}
-                <div class="card">
-                    {% if item.imagem %}
-                        <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="card-img">
-                    {% else %}
-                        <div class="card-img">imagem do item</div>
-                    {% endif %}
-                    
-                    <div class="card-title">{{ item.nome }}</div>
-                    
-                    <!-- Botão para Detalhar -->
-                    <a href="{% url 'detalhar_item' item.id %}" class="btn">Detalhar</a>
-                </div>
+                <article class="item-card">
+                    <div class="item-image-wrap">
+                        {% if item.imagem %}
+                            <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="item-image">
+                        {% else %}
+                            <div class="item-image placeholder-image">imagem do item</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-body">
+                        <h3>{{ item.nome }}</h3>
+                        {% if item.local %}
+                            <p class="meta-item"><strong>Local:</strong> {{ item.local }}</p>
+                        {% endif %}
+                        {% if item.data_registro %}
+                            <p class="meta-item"><strong>Data:</strong> {{ item.data_registro|date:'d/m/Y' }}</p>
+                        {% endif %}
+                        <a href="{% url 'detalhar_item' item.id %}" class="btn btn-primary">Detalhar</a>
+                    </div>
+                </article>
             {% empty %}
-                <p>Nenhum item encontrado.</p>
+                <div class="empty-state">
+                    <span class="empty-state-icon">🔎</span>
+                    <p>Nenhum item encontrado.</p>
+                </div>
             {% endfor %}
         </div>
 
-        <!-- Botão Mais Itens -->
-        <div class="more-items-container">
-            <a href="{% url 'catalogo' %}" class="btn">Catálogo</a>
+        <div class="more-items-wrap">
+            <button id="loadMoreBtn" class="btn btn-primary" type="button" {% if not page_obj.has_next %}style="display:none;"{% endif %}>
+                Mais itens
+            </button>
+            <div id="loadMoreStatus" class="load-more-status" aria-live="polite"></div>
         </div>
     </main>
+
+    <script>
+        window.ifoundPageState = {
+            initialQuery: '{{ query|escapejs }}',
+            nextPage: {% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}null{% endif %},
+            hasMorePages: {{ page_obj.has_next|yesno:'true,false' }}
+        };
+    </script>
+    <script src="{% static 'js/index.js' %}"></script>
 {% endblock %}

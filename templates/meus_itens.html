@@ -1,36 +1,150 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Meus Itens - iFound{% endblock %}
+{% block title %}Meus Itens - Found{% endblock %}
 
 {% block content %}
 <section class="my-items-page">
-    <div class="my-items-panel">
-        <h1 class="my-items-title">Meus Itens</h1>
+    <div class="page-shell">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">Painel do usuário</p>
+                <h1>Meus Itens</h1>
+                <p class="page-subtitle">Acompanhe os itens que você perdeu ou encontrou.</p>
+            </div>
+        </header>
 
-        <div class="my-items-subheader">
-            <h2>Meus itens (perdidos)</h2>
+        <div class="summary-grid" aria-label="Resumo dos itens">
+            <div class="summary-card total">
+                <div class="summary-icon"><i class="bi bi-box-seam"></i></div>
+                <div>
+                    <strong id="totalItemsCount">0</strong>
+                    <span>Total de itens</span>
+                </div>
+            </div>
+            <div class="summary-card lost">
+                <div class="summary-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                <div>
+                    <strong id="lostItemsCount">0</strong>
+                    <span>Perdidos</span>
+                </div>
+            </div>
+            <div class="summary-card found">
+                <div class="summary-icon"><i class="bi bi-check-circle"></i></div>
+                <div>
+                    <strong id="foundItemsCount">0</strong>
+                    <span>Encontrados</span>
+                </div>
+            </div>
+            <div class="summary-card review">
+                <div class="summary-icon"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <strong id="reviewItemsCount">0</strong>
+                    <span>Em análise</span>
+                </div>
+            </div>
         </div>
 
-        <div class="table-wrapper">
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Data</th>
-                        <th>Detalhes</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="itens-table-body"></tbody>
-            </table>
+        <section class="filters-panel" aria-label="Filtros de itens">
+            <div class="filter-group search-field">
+                <label for="searchInput" class="sr-only">Buscar item</label>
+                <span class="input-icon"><i class="bi bi-search"></i></span>
+                <input id="searchInput" type="search" placeholder="Buscar item..." aria-label="Buscar item">
+            </div>
+
+            <div class="filter-group select-field">
+                <label for="statusFilter" class="sr-only">Filtrar por status</label>
+                <select id="statusFilter" aria-label="Filtrar por status">
+                    <option value="todos">Todos</option>
+                    <option value="perdido">Perdido</option>
+                    <option value="encontrado">Encontrado</option>
+                    <option value="em-analise">Em análise</option>
+                </select>
+            </div>
+
+            <div class="filter-group date-field">
+                <label for="dateFilter" class="sr-only">Filtrar por data</label>
+                <input id="dateFilter" type="date" aria-label="Filtrar por data">
+            </div>
+
+            <button id="clearFiltersBtn" type="button" class="btn btn-secondary">Limpar filtros</button>
+        </section>
+
+        <div class="table-card">
+            <div id="tableLoading" class="table-loading" hidden>
+                <div class="spinner"></div>
+                <span>Carregando itens...</span>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="itemsTable" class="items-table" hidden>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Item</th>
+                            <th>Data</th>
+                            <th>Detalhes</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itensTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="empty-state" hidden>
+                <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+                <h3>Você ainda não possui itens cadastrados.</h3>
+                <p>Cadastre um item perdido ou encontrado para começar.</p>
+                <a href="{% url 'cadastrar_item' %}" class="btn btn-primary">+ Cadastrar item</a>
+            </div>
+
+            <div id="errorState" class="error-state" hidden>
+                <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
+                <h3>Não foi possível carregar seus itens.</h3>
+                <button id="retryItemsBtn" type="button" class="btn btn-primary">Tentar novamente</button>
+            </div>
+        </div>
+
+        <div class="pagination-bar" aria-label="Paginação de itens">
+            <div id="paginationInfo" class="pagination-info"></div>
+            <div id="paginationControls" class="pagination-controls"></div>
         </div>
     </div>
 </section>
 
+<div id="deleteModal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="true"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+        <div class="modal-header">
+            <h3 id="deleteModalTitle">Excluir item</h3>
+            <button type="button" class="modal-close" aria-label="Fechar modal" data-close="true">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Tem certeza que deseja excluir este item?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-close="true">Cancelar</button>
+            <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Excluir item</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
 <script>
-    const itens = {{ itens_json|safe }};
+    window.itensState = {
+        currentPage: 1,
+        pageSize: 10,
+        totalPages: 1,
+        loading: false,
+        currentFilters: {
+            q: '',
+            status: 'todos',
+            data: ''
+        },
+        deleteId: null
+    };
 </script>
 <script src="{% static 'js/meus_itens.js' %}"></script>
 {% endblock %}

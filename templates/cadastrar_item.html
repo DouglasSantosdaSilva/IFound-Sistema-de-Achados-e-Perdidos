@@ -1,60 +1,323 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}{% if edit_mode %}Editar item - Found{% else %}Cadastrar item - Found{% endif %}{% endblock %}
+
 {% block content %}
-<div class="form-card">
-    <h2 class="form-title">Cadastrar Novo Item (Achado/Perdido)</h2>
-
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <!-- Tipo do Objeto -->
-        <div class="form-group">
-            <label for="nome" class="form-label">Tipo do Objeto:</label>
-            <input type="text" name="nome" id="nome" class="form-input" required placeholder="Ex: Chave, Mochila, Caderno">
+<section class="register-page">
+    <div class="register-shell">
+        <div class="register-header">
+            <p class="eyebrow">Cadastro</p>
+            <h1>{% if edit_mode %}Editar item{% else %}Cadastrar item{% endif %}</h1>
+            <p class="page-subtitle">
+                {% if edit_mode %}Atualize os dados deste item já registrado.{% else %}Publique um item perdido ou encontrado para ajudar a comunidade acadêmica.{% endif %}
+            </p>
         </div>
 
-        <!-- Descrição -->
-        <div class="form-group">
-            <label for="descricao" class="form-label">Descrição:</label>
-            <textarea name="descricao" id="descricao" rows="3" class="form-input form-textarea" required placeholder="Detalhes do objeto..."></textarea>
-        </div>
+        <div class="register-layout">
+            <div class="register-card form-card-modern">
+                <form id="itemForm" method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {% if edit_mode and item %}
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                    {% endif %}
 
-        <!-- Local e Data -->
-        <div class="form-row form-group">
-            <div class="form-col">
-                <label for="local" class="form-label">Local:</label>
-                <input type="text" name="local" id="local" class="form-input" required placeholder="Ex: Biblioteca, Bloco A">
+                    <div class="field-grid">
+                        <div class="form-group span-2">
+                            <label for="nome" class="form-label">Tipo do objeto</label>
+                            <input
+                                type="text"
+                                name="nome"
+                                id="nome"
+                                class="form-input"
+                                value="{% if edit_mode and item %}{{ item.nome }}{% endif %}"
+                                placeholder="Ex.: mochila, carteira, caderno"
+                                required
+                            >
+                            <small class="field-hint">Descreva o nome ou tipo do objeto com clareza.</small>
+                        </div>
+
+                        <div class="form-group span-2">
+                            <label for="descricao" class="form-label">Descrição</label>
+                            <textarea
+                                name="descricao"
+                                id="descricao"
+                                class="form-input form-textarea"
+                                rows="4"
+                                placeholder="Informe características, marca, cores e detalhes importantes."
+                                required
+                            >{% if edit_mode and item %}{{ item.descricao }}{% endif %}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="local" class="form-label">Local</label>
+                            <input
+                                type="text"
+                                name="local"
+                                id="local"
+                                class="form-input"
+                                value="{% if edit_mode and item %}{{ item.local }}{% endif %}"
+                                placeholder="Ex.: biblioteca, bloco A"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="data" class="form-label">Data</label>
+                            <input
+                                type="date"
+                                name="data"
+                                id="data"
+                                class="form-input"
+                                value="{% if edit_mode and item %}{{ item.data_registro|date:'Y-m-d' }}{% endif %}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group status-block">
+                        <label class="form-label">Você achou ou perdeu?</label>
+                        <div class="status-options" id="statusGroup">
+                            <label class="status-option">
+                                <input type="radio" name="status" value="achei">
+                                <span class="status-pill status-achado">
+                                    <i class="bi bi-check-circle"></i>
+                                    Achei
+                                </span>
+                            </label>
+
+                            <label class="status-option">
+                                <input type="radio" name="status" value="perdi">
+                                <span class="status-pill status-perdido">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Perdi
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imagem" class="form-label">Foto do objeto</label>
+                        <div id="uploadArea" class="upload-area {% if edit_mode and item and item.imagem %}has-preview{% endif %}" tabindex="0" role="button" aria-label="Selecionar imagem do objeto">
+                            <input type="file" name="imagem" id="imagem" accept="image/jpeg,image/png,image/webp,image/jpg">
+                            <div class="upload-placeholder">
+                                <i class="bi bi-cloud-upload"></i>
+                                <div>
+                                    <strong>Arraste uma imagem aqui</strong>
+                                    <span>ou clique para selecionar</span>
+                                </div>
+                            </div>
+                            <div id="imagePreview" class="image-preview" {% if edit_mode and item and item.imagem %}style="display:block;"{% endif %}>
+                                {% if edit_mode and item and item.imagem %}
+                                    <img src="{{ item.imagem.url }}" alt="Imagem atual do item">
+                                {% endif %}
+                            </div>
+                        </div>
+                        <small class="field-hint">Formatos suportados: JPG, JPEG, PNG e WEBP. Tamanho máximo permitido: 5MB.</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'meus_itens' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            {% if edit_mode %}Salvar alterações{% else %}Cadastrar item{% endif %}
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-col">
-                <label for="data" class="form-label">Data:</label>
-                <input type="date" name="data" id="data" class="form-input" required>
-            </div>
-        </div>
 
-        <!-- Achei ou Perdi -->
-        <div class="form-group">
-            <label class="form-label">Você achou ou perdeu?</label>
-            <div class="status-options">
-                <label class="radio-label">
-                    <input type="radio" name="status" id="achei" value="achei" checked> Achei
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="status" id="perdi" value="perdi"> Perdi
-                </label>
-            </div>
+            <aside class="register-card info-card">
+                <div class="info-card-header">
+                    <i class="bi bi-lightbulb"></i>
+                    <h2>Dicas para um item bem descrito</h2>
+                </div>
+                <ul class="tips-list">
+                    <li>Inclua detalhes como marca, cor, material ou local exato.</li>
+                    <li>Use uma foto clara para facilitar a identificação.</li>
+                    <li>Descreva o ocorrido com as informações mais relevantes.</li>
+                </ul>
+            </aside>
         </div>
+    </div>
+</section>
 
-        <!-- Foto do Objeto -->
-        <div class="form-group">
-            <label for="imagem" class="form-label">Foto do Objeto:</label>
-            <input type="file" name="imagem" id="imagem" class="form-input form-file" accept="image/*">
-        </div>
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-        <!-- Botão Cadastrar -->
-        <div class="form-actions">
-            <button type="submit" class="btn-submit">Cadastrar</button>
-        </div>
-    </form>
-</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('itemForm');
+        const imageInput = document.getElementById('imagem');
+        const uploadArea = document.getElementById('uploadArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const toastContainer = document.getElementById('toast-container');
+        const submitButton = form?.querySelector('button[type="submit"]');
+
+        function showToast(title, message, type = 'info') {
+            if (!toastContainer) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <div class="toast-icon ${type}">
+                        <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : type === 'error' ? 'bi-x-circle-fill' : type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'}"></i>
+                    </div>
+                    <div class="toast-text">
+                        <strong>${title}</strong>
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="toast-close" aria-label="Fechar notificação">&times;</button>
+                </div>
+            `;
+
+            const closeButton = toast.querySelector('.toast-close');
+            closeButton?.addEventListener('click', () => {
+                toast.classList.add('toast-closing');
+                setTimeout(() => toast.remove(), 220);
+            });
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('toast-closing');
+                setTimeout(() => toast.remove(), 220);
+            }, 3400);
+        }
+
+        function resetStatusHighlight() {
+            const group = document.getElementById('statusGroup');
+            if (group) {
+                group.classList.remove('is-invalid');
+            }
+        }
+
+        function setStatusHighlight() {
+            const group = document.getElementById('statusGroup');
+            if (group) {
+                group.classList.add('is-invalid');
+            }
+        }
+
+        function clearImagePreview() {
+            if (imagePreview) {
+                imagePreview.innerHTML = '';
+                imagePreview.style.display = 'none';
+            }
+            if (uploadArea) {
+                uploadArea.classList.remove('has-preview');
+            }
+            if (imageInput) {
+                imageInput.value = '';
+            }
+        }
+
+        function setPreview(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                return;
+            }
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showToast('Atenção', 'Formato de imagem inválido.', 'warning');
+                clearImagePreview();
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Atenção', 'A imagem deve ter no máximo 5MB.', 'warning');
+                clearImagePreview();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.alt = 'Pré-visualização do item';
+                if (imagePreview) {
+                    imagePreview.innerHTML = '';
+                    imagePreview.appendChild(img);
+                    imagePreview.style.display = 'block';
+                }
+                if (uploadArea) {
+                    uploadArea.classList.add('has-preview');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        imageInput?.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            setPreview(file);
+        });
+
+        uploadArea?.addEventListener('click', () => imageInput?.click());
+        uploadArea?.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                imageInput?.click();
+            }
+        });
+
+        form?.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            resetStatusHighlight();
+
+            const nome = form.querySelector('input[name="nome"]').value.trim();
+            const descricao = form.querySelector('textarea[name="descricao"]').value.trim();
+            const local = form.querySelector('input[name="local"]').value.trim();
+            const data = form.querySelector('input[name="data"]').value;
+            const situacao = form.querySelector('input[name="status"]:checked');
+
+            if (!nome || !descricao || !local || !data || !situacao) {
+                showToast('Atenção', situacao ? 'Preencha todos os campos obrigatórios.' : 'Selecione se você achou ou perdeu o item.', 'warning');
+                if (!situacao) {
+                    setStatusHighlight();
+                }
+                return;
+            }
+
+            const formData = new FormData(form);
+            formData.set('ajax', '1');
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Cadastrando...';
+            }
+
+            try {
+                const response = await fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || document.cookie.split('; ').find((cookie) => cookie.startsWith('csrftoken='))?.split('=')[1],
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                let dataJson = null;
+                try {
+                    dataJson = await response.json();
+                } catch (error) {
+                    dataJson = null;
+                }
+
+                if (!response.ok || !dataJson || dataJson.success !== true) {
+                    throw new Error(dataJson?.message || 'Não foi possível cadastrar o item. Tente novamente.');
+                }
+
+                showToast('Sucesso', 'Item cadastrado com sucesso!', 'success');
+                form.reset();
+                clearImagePreview();
+                resetStatusHighlight();
+            } catch (error) {
+                showToast('Erro', error.message || 'Não foi possível cadastrar o item. Tente novamente.', 'error');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = '{% if edit_mode %}Salvar alterações{% else %}Cadastrar item{% endif %}';
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

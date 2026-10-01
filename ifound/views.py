@@ -5,10 +5,80 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.urls import reverse
 from .models import Perfil, Item, Solicitacao
 
 SUAP_AUTH_URL = 'https://suap.ifrn.edu.br/api/v2/autenticacao/token/'
 SUAP_DADOS_URL = 'https://suap.ifrn.edu.br/api/v2/minhas-informacoes/meus-dados/'
+
+
+def _status_label(status_value):
+    if status_value == 'perdi':
+        return 'Perdido'
+    if status_value == 'achei':
+        return 'Encontrado'
+    return 'Em análise'
+
+
+def _serializar_item(item):
+    return {
+        'id': item.id,
+        'titulo': item.nome,
+        'data': item.data_registro.strftime('%d/%m/%Y') if item.data_registro else 'Não informado',
+        'detalhes': item.descricao,
+        'status': _status_label(item.status),
+        'status_key': item.status,
+        'imagem': item.imagem.url if item.imagem else None,
+        'url_detalhe': f'/item/{item.id}/',
+    }
+
+
+def _status_filter_value(value):
+    if value == 'perdido':
+        return 'perdi'
+    if value == 'encontrado':
+        return 'achei'
+    return None
+
+
+def index(request):
+    query = (request.GET.get('q') or '').strip()
+    page_number = request.GET.get('page', 1)
+
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1
+
+    itens = Item.objects.exclude(status='devolvido').order_by('-data_registro')
+
+    if query:
+        itens = itens.filter(nome__icontains=query)
+
+    paginator = Paginator(itens, 6)
+    page_obj = paginator.get_page(page_number)
+
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1'
+
+    if is_ajax:
+        payload = {
+            'items': [_serializar_item(item) for item in page_obj.object_list],
+            'page': page_obj.number,
+            'next_page': page_obj.next_page_number() if page_obj.has_next() else None,
+            'has_next_page': page_obj.has_next(),
+            'total_items': paginator.count,
+            'query': query,
+        }
+        return JsonResponse(payload)
+
+    return render(request, 'index.html', {
+        'itens': page_obj.object_list,
+        'page_obj': page_obj,
+        'query': query,
+    })
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -61,26 +131,17 @@ def login_view(request):
 
     return render(request, 'login.html')
 
+
 @login_required
 def perfil_view(request):
     perfil, _ = Perfil.objects.get_or_create(user=request.user)
     return render(request, 'perfil.html', {'perfil': perfil})
 
+
 @login_required
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-
-def index(request):
-    query = request.GET.get('q')
-    
-    itens = Item.objects.exclude(status='devolvido').order_by('-data_registro')
-
-    if query:
-        itens = itens.filter(nome__icontains=query)
-
-    return render(request, 'index.html', {'itens': itens})
 
 
 @login_required
@@ -103,21 +164,94 @@ def detalhar_item(request, id):
 
     return render(request, 'detalhes_item.html', {'item': item})
 
+
 def catalogo(request):
     itens = Item.objects.all().order_by('-data_registro')
     return render(request, 'catalogo.html', {'itens': itens})
 
+
 @login_required
 def cadastrar_item(request):
+    edit_id = request.GET.get('edit')
+    item = None
+
+    if edit_id:
+        item = get_object_or_404(Item, id=edit_id, usuario=request.user)
+
     if request.method == 'POST':
-        nome = request.POST.get('nome')
-        descricao = request.POST.get('descricao')
-        local = request.POST.get('local')
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('ajax') == '1'
+        item_id = request.POST.get('item_id')
+
+        if item_id:
+            item = get_object_or_404(Item, id=item_id, usuario=request.user)
+            nome = (request.POST.get('nome') or '').strip()
+            descricao = (request.POST.get('descricao') or '').strip()
+            local = (request.POST.get('local') or '').strip()
+            data = request.POST.get('data')
+            status = request.POST.get('status')
+            imagem = request.FILES.get('imagem')
+
+            errors = []
+            if not nome:
+                errors.append('Informe o tipo do objeto.')
+            if not descricao:
+                errors.append('Descreva o objeto.')
+            if not local:
+                errors.append('Informe o local do ocorrido.')
+            if not data:
+                errors.append('Selecione a data do registro.')
+            if not status:
+                errors.append('Selecione se você achou ou perdeu o item.')
+
+            if errors:
+                if is_ajax:
+                    return JsonResponse({'success': False, 'message': errors[0]}, status=400)
+                for message in errors:
+                    messages.error(request, message)
+                return render(request, 'cadastrar_item.html', {'item': item, 'edit_mode': True}, status=400)
+
+            item.nome = nome
+            item.descricao = descricao
+            item.local = local
+            item.data_registro = data
+            item.status = status
+            if imagem:
+                item.imagem = imagem
+            item.save()
+
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': 'Item atualizado com sucesso!', 'redirect_url': reverse('meus_itens')})
+
+            messages.success(request, 'Item atualizado com sucesso!')
+            return redirect('meus_itens')
+
+        nome = (request.POST.get('nome') or '').strip()
+        descricao = (request.POST.get('descricao') or '').strip()
+        local = (request.POST.get('local') or '').strip()
         data = request.POST.get('data')
         status = request.POST.get('status')
         imagem = request.FILES.get('imagem')
 
-        Item.objects.create(
+        errors = []
+        if not nome:
+            errors.append('Informe o tipo do objeto.')
+        if not descricao:
+            errors.append('Descreva o objeto.')
+        if not local:
+            errors.append('Informe o local do ocorrido.')
+        if not data:
+            errors.append('Selecione a data do registro.')
+        if not status:
+            errors.append('Selecione se você achou ou perdeu o item.')
+
+        if errors:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': errors[0]}, status=400)
+            for message in errors:
+                messages.error(request, message)
+            return render(request, 'cadastrar_item.html', {'item': None, 'edit_mode': False}, status=400)
+
+        item = Item.objects.create(
             nome=nome,
             descricao=descricao,
             local=local,
@@ -126,50 +260,97 @@ def cadastrar_item(request):
             imagem=imagem,
             usuario=request.user
         )
+
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': 'Item cadastrado com sucesso!', 'redirect_url': reverse('meus_itens')})
+
         messages.success(request, 'Item cadastrado com sucesso!')
         return redirect('index')
 
-    return render(request, 'cadastrar_item.html')
+    return render(request, 'cadastrar_item.html', {'item': item, 'edit_mode': bool(item)})
 
 
 @login_required
 def meus_itens(request):
-    itens_usuarios = Item.objects.filter(usuario=request.user).order_by('-criado_em')
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1'
+    queryset = Item.objects.filter(usuario=request.user).order_by('-criado_em')
 
-    itens = [
+    query = (request.GET.get('q') or '').strip()
+    status_filter = (request.GET.get('status') or 'todos').strip().lower()
+    date_filter = (request.GET.get('data') or '').strip()
+
+    if query:
+        queryset = queryset.filter(nome__icontains=query)
+
+    if status_filter and status_filter != 'todos':
+        normalized_status = _status_filter_value(status_filter)
+        if normalized_status:
+            queryset = queryset.filter(status=normalized_status)
+
+    if date_filter:
+        queryset = queryset.filter(data_registro=date_filter)
+
+    total_items = queryset.count()
+    total_perdidos = queryset.filter(status='perdi').count()
+    total_encontrados = queryset.filter(status='achei').count()
+    total_em_analise = 0
+
+    if request.method == 'POST' and is_ajax:
+        try:
+            data = json.loads(request.body.decode('utf-8')) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Dados inválidos.'}, status=400)
+
+        action = data.get('action')
+        item_id = data.get('item_id')
+
+        if action == 'delete_item':
+            item = get_object_or_404(Item, id=item_id, usuario=request.user)
+            item.delete()
+            return JsonResponse({'success': True, 'message': 'Item excluído com sucesso.'})
+
+        return JsonResponse({'success': False, 'message': 'Ação inválida.'}, status=400)
+
+    page_number = request.GET.get('page', 1)
+
+    try:
+        page_number = int(page_number)
+    except (TypeError, ValueError):
+        page_number = 1
+
+    paginator = Paginator(queryset, 10)
+    page_obj = paginator.get_page(page_number)
+
+    items_payload = [
         {
-            'id': '#0001',
-            'titulo': 'Celular',
-            'data': '31/08/2026',
-            'detalhes': 'Redmi A5 Dourado',
-            'status': 'Perdido'
-        },
-        {
-            'id': '#0011',
-            'titulo': 'Garrafa',
-            'data': '22/06/2026',
-            'detalhes': 'Tupperware Rosa 1l',
-            'status': 'Encontrado'
-        },
-        {
-            'id': '#0678',
-            'titulo': 'Moletom',
-            'data': '31/06/2026',
-            'detalhes': 'Moletom preto Nike',
-            'status': 'Em análise'
-        },
+            'id': item.id,
+            'titulo': item.nome,
+            'data': item.data_registro.strftime('%d/%m/%Y') if item.data_registro else '—',
+            'detalhes': item.descricao,
+            'status': _status_label(item.status),
+            'status_key': item.status,
+        }
+        for item in page_obj.object_list
     ]
 
-    if itens_usuarios.exists():
-        itens = [
-            {
-                'id': f"#{str(item.id).zfill(4)}",
-                'titulo': item.nome,
-                'data': item.data_registro.strftime('%d/%m/%Y') if item.data_registro else 'Não informado',
-                'detalhes': item.descricao,
-                'status': 'Perdido' if item.status == 'perdi' else 'Encontrado' if item.status == 'achei' else 'Em análise'
-            }
-            for item in itens_usuarios
-        ]
+    summary = {
+        'totalItems': total_items,
+        'perdidos': total_perdidos,
+        'encontrados': total_encontrados,
+        'emAnalise': total_em_analise,
+    }
 
-    return render(request, 'meus_itens.html', {'itens_json': json.dumps(itens)})
+    if is_ajax:
+        return JsonResponse({
+            'success': True,
+            'message': 'Itens carregados com sucesso.',
+            'data': items_payload,
+            'summary': summary,
+            'pagination': {
+                'page': page_obj.number,
+                'totalPages': paginator.num_pages,
+                'totalItems': total_items,
+            },
+        })
+
+    return render(request, 'meus_itens.html', {'items': items_payload})

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Found - Achados e Perdidos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container header-inner">
+        <div class="brand">Found - Achados e perdidos</div>
+
+        <nav class="main-nav" aria-label="Menu principal">
+          <a href="#" class="nav-link active">Página Inicial</a>
+          <a href="#" class="nav-link">Meus Itens</a>
+          <a href="#" class="nav-link">Cadastro de Itens</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-content">
+          <h1>Perdeu algo no campus ?</h1>
+
+          <label class="search-box" aria-label="Buscar item">
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Buscar item..."
+              autocomplete="off"
+            />
+            <span class="search-icon" aria-hidden="true">🔎</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="items-section">
+        <div class="container">
+          <h2>Itens recentes</h2>
+
+          <div id="itemGrid" class="cards-grid" aria-live="polite"></div>
+
+          <div class="load-more-wrap">
+            <button id="loadMoreBtn" class="btn btn-primary" type="button">
+              Mais Itens
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
