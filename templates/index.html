@@ -1,65 +1,140 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Página Inicial - iFound{% endblock %}
+{% block title %}Página Inicial - IFound{% endblock %}
 
 {% block content %}
-    <section class="hero-home">
-        <div class="container hero-inner">
-            <h1>Perdeu algo no campus?</h1>
-            <p>Encontre itens perdidos ou cadastre algo que você encontrou.</p>
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-background">
+            <svg class="hero-image" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#1e5a96;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0e3a5c;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="1200" height="400" fill="url(#heroGradient)"/>
+                <circle cx="100" cy="60" r="80" fill="#0052a3" opacity="0.2"/>
+                <circle cx="1100" cy="350" r="120" fill="#0052a3" opacity="0.15"/>
+                <path d="M 0 200 Q 300 150 600 200 T 1200 200 L 1200 400 L 0 400 Z" fill="#ffffff" opacity="0.05"/>
+            </svg>
+            <div class="hero-overlay"></div>
+        </div>
 
-            <form class="search-box" id="searchForm" method="get" action="{% url 'index' %}">
-                <span class="search-icon"><i class="bi bi-search"></i></span>
-                <input type="search" id="searchInput" name="q" value="{{ query }}" placeholder="Pesquise por um item..." autocomplete="off">
-            </form>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-label">Campus IFRN</div>
+                <h1 class="hero-title">
+                    Perdeu algo <span class="hero-highlight">no campus?</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Encontre itens perdidos ou cadastre algo que você encontrou.
+                </p>
 
-            <div id="searchStatus" class="search-status" aria-live="polite"></div>
+                <div class="hero-search-wrapper">
+                    <form class="hero-search-form" id="heroSearchForm">
+                        <div class="search-input-group">
+                            <i class="bi bi-search search-icon"></i>
+                            <input 
+                                type="search" 
+                                id="heroSearchInput" 
+                                name="q" 
+                                class="hero-search-input" 
+                                placeholder="Pesquise por um item, local ou data..."
+                                value="{{ query }}"
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="hero-search-btn">
+                                <span>Pesquisar</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div id="heroSearchStatus" class="search-status" aria-live="polite"></div>
+                    </form>
+                </div>
+            </div>
         </div>
     </section>
 
-    <main class="container page-home">
-        <div class="section-header">
-            <h2>Itens recentes</h2>
-        </div>
-
-        <div id="cardsGrid" class="cards-grid" aria-live="polite">
-            {% for item in itens %}
-                <article class="item-card">
-                    <div class="item-image-wrap">
-                        {% if item.imagem %}
-                            <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="item-image">
-                        {% else %}
-                            <div class="item-image placeholder-image">imagem do item</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="item-body">
-                        <h3>{{ item.nome }}</h3>
-                        {% if item.local %}
-                            <p class="meta-item"><strong>Local:</strong> {{ item.local }}</p>
-                        {% endif %}
-                        {% if item.data_registro %}
-                            <p class="meta-item"><strong>Data:</strong> {{ item.data_registro|date:'d/m/Y' }}</p>
-                        {% endif %}
-                        <a href="{% url 'detalhar_item' item.id %}" class="btn btn-primary">Detalhar</a>
-                    </div>
-                </article>
-            {% empty %}
-                <div class="empty-state">
-                    <span class="empty-state-icon">🔎</span>
-                    <p>Nenhum item encontrado.</p>
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
+        <!-- RECENT ITEMS SECTION -->
+        <section class="recent-items-section">
+            <div class="section-header">
+                <div class="header-wrapper">
+                    <h2 class="section-title">
+                        <span class="section-icon">📦</span>
+                        Itens recentes
+                    </h2>
+                    <p class="section-description">
+                        Confira os últimos itens cadastrados no sistema.
+                    </p>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
 
-        <div class="more-items-wrap">
-            <button id="loadMoreBtn" class="btn btn-primary" type="button" {% if not page_obj.has_next %}style="display:none;"{% endif %}>
-                Mais itens
-            </button>
-            <div id="loadMoreStatus" class="load-more-status" aria-live="polite"></div>
-        </div>
+            <div id="cardsGrid" class="items-grid" aria-live="polite" aria-label="Grade de itens">
+                {% for item in itens %}
+                    <article class="item-card">
+                        <div class="item-card-image-wrapper">
+                            {% if item.imagem %}
+                                <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="item-card-image">
+                            {% else %}
+                                <div class="item-card-image-placeholder">
+                                    <i class="bi bi-image"></i>
+                                    <span>Sem imagem</span>
+                                </div>
+                            {% endif %}
+                            <div class="item-card-status">
+                                <span class="status-badge {% if item.status == 'perdi' %}status-perdi{% elif item.status == 'achei' %}status-achei{% else %}status-analise{% endif %}">
+                                    {% if item.status == 'perdi' %}Perdido{% elif item.status == 'achei' %}Encontrado{% else %}Em análise{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="item-card-content">
+                            <h3 class="item-card-title">{{ item.nome }}</h3>
+                            
+                            {% if item.local %}
+                                <div class="item-card-meta">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span>{{ item.local }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if item.data_registro %}
+                                <div class="item-card-meta">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span>{{ item.data_registro|date:'d/m/Y' }}</span>
+                                </div>
+                            {% endif %}
+                            
+                            <a href="{% url 'detalhar_item' item.id %}" class="item-card-button">
+                                <span>Detalhar</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </article>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">😔</div>
+                        <h3>Nenhum item encontrado</h3>
+                        <p>Tente pesquisar novamente ou navegue pela página.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="pagination-wrapper" id="paginationWrapper">
+                <button id="loadMoreBtn" class="load-more-btn" type="button" {% if not page_obj.has_next %}style="display:none;"{% endif %}>
+                    <span>Carregar mais itens</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div id="loadMoreStatus" class="load-more-status" aria-live="polite"></div>
+            </div>
+        </section>
     </main>
 
+    <!-- PAGE STATE DATA -->
     <script>
         window.ifoundPageState = {
             initialQuery: '{{ query|escapejs }}',

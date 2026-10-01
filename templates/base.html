@@ -37,32 +37,39 @@
     </script>
 </head>
 <body>
-    <header class="navbar">
-        <a href="{% url 'index' %}" class="navbar-brand">Found - Achados e Perdidos</a>
-        <nav class="navbar-nav-wrap" aria-label="Menu principal">
-            <ul class="navbar-nav">
-                <li>
-                    <a href="{% url 'index' %}" class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}">
-                        Página Inicial
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'meus_itens' %}" class="{% if request.resolver_match.url_name == 'meus_itens' %}active{% endif %}">
-                        Meus Itens
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'cadastrar_item' %}" class="{% if request.resolver_match.url_name == 'cadastrar_item' %}active{% endif %}">
-                        Cadastrar Item
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'perfil' %}" class="profile-btn" title="Meu Perfil" aria-label="Meu perfil">
-                        <i class="bi bi-person-circle"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+    <header class="navbar navbar-modern">
+        <div class="navbar-container">
+            <div class="navbar-brand-section">
+                <a href="{% url 'index' %}" class="navbar-brand">
+                    <span class="navbar-logo">IFound</span>
+                    <span class="navbar-subtitle">Achados e Perdidos</span>
+                </a>
+            </div>
+            <nav class="navbar-nav-wrap" aria-label="Menu principal">
+                <ul class="navbar-nav">
+                    <li>
+                        <a href="{% url 'index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                            Página Inicial
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'meus_itens' %}" class="nav-link {% if request.resolver_match.url_name == 'meus_itens' %}active{% endif %}">
+                            Meus Itens
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'cadastrar_item' %}" class="nav-link {% if request.resolver_match.url_name == 'cadastrar_item' %}active{% endif %}">
+                            Cadastrar Item
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'perfil' %}" class="navbar-profile-btn" title="Meu Perfil" aria-label="Meu perfil">
+                            <i class="bi bi-person-circle"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
     {% block content %}

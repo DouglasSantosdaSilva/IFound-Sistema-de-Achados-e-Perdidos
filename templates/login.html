@@ -5,32 +5,189 @@
 
 {% block content %}
 <div class="login-wrapper">
-    <div class="login-card">
-        <h2>Acesse sua conta</h2>
-
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <p class="alert alert-{{ message.tags }}">{{ message }}</p>
-                {% endfor %}
+    <!-- Left Side: Institutional Branding -->
+    <div class="login-left">
+        <div class="login-institutional">
+            <div class="institutional-content">
+                <div class="ifound-branding">
+                    <i class="bi bi-search"></i>
+                    <h1>iFound</h1>
+                </div>
+                <p class="institutional-tagline">Conectando pessoas e objetos no campus</p>
+                
+                <div class="benefits-section">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Busque com Facilidade</h4>
+                            <p>Procure por itens perdidos no campus</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="bi bi-plus-lg"></i>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Registre Achados</h4>
+                            <p>Divulgue itens encontrados para ajudar outros</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="benefit-text">
+                            <h4>Comunidade Unida</h4>
+                            <p>Recupere seus pertences com segurança</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% endif %}
+            
+            <!-- Campus Image Background -->
+            <div class="institutional-image">
+                <img src="{% static 'img/campus-pagina-inicial.jpg' %}" alt="Campus IFRN" class="campus-img">
+                <div class="image-overlay"></div>
+            </div>
+        </div>
+    </div>
 
-        <form method="POST" action="{% url 'login' %}">
-            {% csrf_token %}
-
-            <div class="input-group">
-                <label for="matricula">Matrícula:</label>
-                <input type="text" id="matricula" name="username" placeholder="" required autocomplete="off">
+    <!-- Right Side: Authentication Card -->
+    <div class="login-right">
+        <div class="auth-card">
+            <!-- Tab Navigation -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-tab="login">
+                    <i class="bi bi-box-arrow-in-right"></i> Entrar
+                </button>
+                <button type="button" class="auth-tab" data-tab="signup">
+                    <i class="bi bi-person-plus"></i> Cadastro
+                </button>
             </div>
 
-            <div class="input-group">
-                <label for="senha">Senha:</label>
-                <input type="password" id="senha" name="password" placeholder="" required>
+            <!-- Login Tab -->
+            <div class="auth-tab-content active" id="login-tab">
+                <h2>Acesse sua Conta</h2>
+                
+                {% if messages %}
+                    <div class="auth-messages">
+                        {% for message in messages %}
+                            <div class="alert alert-error">
+                                <i class="bi bi-exclamation-circle"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'login' %}" class="auth-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="bi bi-person-badge"></i>
+                            Matrícula SUAP
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            placeholder="Digite sua matrícula"
+                            required 
+                            autocomplete="off"
+                            class="form-input"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="bi bi-lock"></i>
+                            Senha
+                        </label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="Digite sua senha"
+                                required 
+                                class="form-input"
+                            >
+                            <button type="button" class="password-toggle" aria-label="Mostrar/Ocultar senha">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember" id="remember">
+                            Lembrar-me neste dispositivo
+                        </label>
+                        <a href="#" class="forgot-password">Esqueceu a senha?</a>
+                    </div>
+
+                    <button type="submit" class="btn-auth btn-login">
+                        Entrar com SUAP
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Utilizamos autenticação via <strong>SUAP IFRN</strong> para sua segurança</p>
+                </div>
             </div>
 
-            <button type="submit" class="btn-entrar">Entrar</button>
-        </form>
+            <!-- Signup Tab (Info) -->
+            <div class="auth-tab-content" id="signup-tab">
+                <h2>Criar Conta</h2>
+                
+                <div class="signup-info">
+                    <div class="info-block">
+                        <div class="info-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <h3>Autenticação Institucional</h3>
+                        <p>
+                            O iFound utiliza o sistema SUAP (Sistema de Administração de Pessoal) da IFRN para autenticação. 
+                            Você não precisa criar uma conta separada.
+                        </p>
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-icon">
+                            <i class="bi bi-key"></i>
+                        </div>
+                        <h3>Credenciais SUAP</h3>
+                        <p>
+                            Use suas credenciais de matrícula e senha do SUAP. Se você não possui uma conta ou esqueceu 
+                            suas credenciais, acesse o portal do SUAP.
+                        </p>
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-icon">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3>Segurança Garantida</h3>
+                        <p>
+                            Seus dados são protegidos pela infraestrutura institucional do IFRN. Nenhuma senha é armazenada 
+                            no iFound.
+                        </p>
+                    </div>
+
+                    <a href="https://suap.ifrn.edu.br" target="_blank" class="btn-auth btn-suap">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                        Acessar Portal SUAP
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script src="{% static 'js/login.js' %}"></script>
 {% endblock %}
