@@ -5,43 +5,98 @@
 
 {% block content %}
 <div class="profile-page">
-    <!-- Cabeçalho Verde -->
-    <div class="profile-header">
-        <h1>Meu Perfil</h1>
-        
-        <div class="profile-avatar-container">
-            <div class="profile-avatar">
-                {% if perfil.foto_url %}
-                    <img src="{{ perfil.foto_url }}" alt="Foto de {{ perfil.nome_completo }}">
-                {% else %}
-                    <span>Perfil</span>
-                {% endif %}
-            </div>
-
-            <div class="profile-user-info">
-                <h2>{{ perfil.nome_completo|default:user.username }}</h2>
-                <p class="profile-role">{{ perfil.vinculo }}</p>
-            </div>
+    <section class="profile-hero" style="background-image: url('{% static 'images/campus-pagina-inicial.jpg' %}');">
+        <div class="profile-hero-overlay"></div>
+        <div class="profile-hero-content">
+            <h1>Meu Perfil</h1>
         </div>
-    </div>
+    </section>
 
-    <!-- Card de Detalhes -->
-    <div class="profile-card-container">
-        <div class="profile-card">
-            <div class="info-group">
-                <p><strong>Matricula:</strong> {{ user.username }}</p>
-                <p><strong>Curso:</strong> {{ perfil.curso|default:"Não informado" }}</p>
-                <p><strong>Turma:</strong> {{ perfil.turma|default:"Não informada" }}</p>
-            </div>
+    <div class="profile-layout">
+        <aside class="profile-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+                <a class="profile-menu-item active" href="#profile-information" aria-current="page">
+                    <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                    <span>Informações</span>
+                </a>
+                <a class="profile-menu-item" href="{% url 'meus_itens' %}">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>Meus Itens</span>
+                </a>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <span>Minhas Solicitações</span>
+                </span>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <span>Alterar Senha</span>
+                </span>
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
 
-            <hr class="profile-divider">
+        <main class="profile-main">
+            <section class="profile-identity-card" aria-label="Identificação do usuário">
+                <div class="profile-identity-avatar">
+                    {% if perfil.foto_url %}
+                        <img src="{{ perfil.foto_url }}" alt="Foto de {{ perfil.nome_completo|default:user.username }}">
+                    {% else %}
+                        <i class="bi bi-person-fill" aria-hidden="true"></i>
+                    {% endif %}
+                    <a href="#" class="profile-photo-edit" aria-label="Editar foto do perfil" title="Editar foto do perfil">
+                        <i class="bi bi-camera-fill" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="profile-identity-info">
+                    <h2>{{ perfil.nome_completo|default:user.username }}</h2>
+                    <p><i class="bi bi-mortarboard-fill" aria-hidden="true"></i> {{ perfil.vinculo }}</p>
+                </div>
+            </section>
 
-            <div class="profile-actions">
-                <a href="#" class="action-btn">Editar Perfil</a>
-                <span class="action-separator">|</span>
-                <a href="#" class="action-btn">Editar Foto do Perfil</a>
-            </div>
-        </div>
+            <section class="profile-information-card" id="profile-information">
+                <div class="profile-section-heading">
+                    <span class="profile-heading-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+                    <h2>Informações do Perfil</h2>
+                </div>
+
+                <div class="profile-information-grid">
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">Nome completo</span>
+                        <p>{{ perfil.nome_completo|default:user.username }}</p>
+                    </div>
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">E-mail</span>
+                        <p>{{ user.email|default:"Não informado" }}</p>
+                    </div>
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">Matrícula</span>
+                        <p>{{ user.username }}</p>
+                    </div>
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">Curso</span>
+                        <p>{{ perfil.curso|default:"Não informado" }}</p>
+                    </div>
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">Turma</span>
+                        <p>{{ perfil.turma|default:"Não informada" }}</p>
+                    </div>
+                    <div class="profile-data-field">
+                        <span class="profile-data-label">Vínculo</span>
+                        <p>{{ perfil.vinculo }}</p>
+                    </div>
+                </div>
+
+                <div class="profile-information-actions">
+                    <a href="#" class="profile-edit-button">
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        <span>Editar dados</span>
+                    </a>
+                </div>
+            </section>
+        </main>
     </div>
 </div>
 {% endblock %}
