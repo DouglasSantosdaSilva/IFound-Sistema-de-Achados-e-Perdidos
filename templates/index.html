@@ -5,19 +5,7 @@
 {% block content %}
     <!-- HERO SECTION -->
     <section class="hero-section">
-        <div class="hero-background">
-            <svg class="hero-image" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#1e5a96;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#0e3a5c;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="1200" height="400" fill="url(#heroGradient)"/>
-                <circle cx="100" cy="60" r="80" fill="#0052a3" opacity="0.2"/>
-                <circle cx="1100" cy="350" r="120" fill="#0052a3" opacity="0.15"/>
-                <path d="M 0 200 Q 300 150 600 200 T 1200 200 L 1200 400 L 0 400 Z" fill="#ffffff" opacity="0.05"/>
-            </svg>
+        <div class="hero-background" style="background-image: url('{% static 'images/campus-pagina-inicial.jpg' %}'), url('{% static 'img/campus-pagina-inicial.jpg' %}');">
             <div class="hero-overlay"></div>
         </div>
 

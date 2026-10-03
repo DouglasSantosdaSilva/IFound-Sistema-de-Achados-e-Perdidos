@@ -194,18 +194,15 @@ button {
     position: absolute;
     inset: 0;
     z-index: 0;
-}
-
-.hero-image {
-    width: 100%;
-    height: 100%;
-    display: block;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(0, 52, 163, 0.7) 0%, rgba(14, 58, 92, 0.8) 100%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0.32) 100%);
     z-index: 1;
 }
 
