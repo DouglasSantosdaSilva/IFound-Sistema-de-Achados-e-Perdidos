@@ -3224,3 +3224,604 @@ a.profile-menu-item:hover i {
     }
 }
 
+/* ============================================
+   REGISTER ITEM PAGE
+   ============================================ */
+
+.register-page {
+    min-height: calc(100vh - 70px);
+    overflow: hidden;
+    background: #f5f8fc;
+    color: #1f2937;
+}
+
+.register-hero {
+    position: relative;
+    display: flex;
+    min-height: 205px;
+    align-items: center;
+    padding: 36px 24px;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.register-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgba(10, 35, 62, 0.82), rgba(18, 59, 99, 0.53));
+}
+
+.register-hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: min(1000px, 100%);
+    align-items: center;
+    gap: 18px;
+    margin: 0 auto;
+    color: #fff;
+}
+
+.register-hero-icon {
+    display: grid;
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 24px;
+    backdrop-filter: blur(5px);
+}
+
+.register-hero-eyebrow {
+    margin: 0 0 5px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.register-hero-content h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.24);
+}
+
+.register-hero-content > div > p:last-child {
+    margin: 8px 0 0;
+    color: rgba(255, 255, 255, 0.93);
+    font-size: 15px;
+}
+
+.register-shell {
+    width: min(980px, calc(100% - 48px));
+    margin: 34px auto 64px;
+}
+
+.register-card.form-card-modern {
+    padding: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 12px 34px rgba(18, 59, 99, 0.08);
+}
+
+.register-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 23px;
+    border-bottom: 1px solid #edf1f6;
+}
+
+.register-heading-icon {
+    display: grid;
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border-radius: 14px;
+    background: #eaf3ff;
+    color: #1479e8;
+    font-size: 22px;
+}
+
+.register-card-heading h2 {
+    margin: 0;
+    color: #123b67;
+    font-size: 21px;
+    font-weight: 750;
+    line-height: 1.3;
+}
+
+.register-card-heading p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.register-page .register-messages {
+    display: grid;
+    gap: 8px;
+    margin: -8px 0 22px;
+}
+
+.register-page .register-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 0;
+    padding: 11px 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 13px;
+}
+
+.register-page .register-message.error {
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #b91c1c;
+}
+
+.register-page .register-message.success {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+.register-page .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 20px;
+}
+
+.register-page .form-group {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 22px;
+}
+
+.register-page .field-grid .form-group {
+    margin: 0;
+}
+
+.register-page .form-group.span-2 {
+    grid-column: 1 / -1;
+}
+
+.register-page .form-label {
+    color: #123b67;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.register-page .form-input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1px solid #dbe4ef;
+    border-radius: 11px;
+    outline: none;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.register-page .form-input::placeholder {
+    color: #9aa8b8;
+}
+
+.register-page .form-input:focus {
+    border-color: #1479e8;
+    box-shadow: 0 0 0 3px rgba(20, 121, 232, 0.12);
+}
+
+.register-page textarea.form-input {
+    min-height: 118px;
+    resize: vertical;
+    line-height: 1.55;
+}
+
+.register-page .field-hint {
+    color: #77869a;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.register-page .status-block {
+    margin-top: 26px;
+}
+
+.register-page .status-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 3px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.register-page .status-options.is-invalid {
+    border-color: #fecaca;
+    background: #fff7f7;
+}
+
+.register-page .status-option {
+    position: relative;
+    display: inline-flex;
+    cursor: pointer;
+}
+
+.register-page .status-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.register-page .status-pill {
+    display: inline-flex;
+    min-width: 130px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 9px 16px;
+    border: 1px solid #dbe4ef;
+    border-radius: 11px;
+    background: #fff;
+    color: #52657a;
+    font-size: 14px;
+    font-weight: 650;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.register-page .status-pill i {
+    font-size: 16px;
+}
+
+.register-page .status-option input:checked + .status-pill {
+    border-color: #1479e8;
+    background: #eaf3ff;
+    color: #1268c5;
+    box-shadow: 0 0 0 3px rgba(20, 121, 232, 0.08);
+}
+
+.register-page .status-option input:focus-visible + .status-pill {
+    outline: 3px solid rgba(20, 121, 232, 0.22);
+    outline-offset: 2px;
+}
+
+.register-page .register-photo-group {
+    margin-top: 27px;
+}
+
+.register-page .upload-area {
+    position: relative;
+    display: grid;
+    min-height: 170px;
+    place-items: center;
+    overflow: hidden;
+    padding: 22px;
+    border: 2px dashed #b9d7f8;
+    border-radius: 14px;
+    outline: none;
+    background: #f8fbff;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.register-page .upload-area:hover,
+.register-page .upload-area:focus-visible,
+.register-page .upload-area.is-dragging {
+    border-color: #1479e8;
+    background: #eff6ff;
+    box-shadow: 0 0 0 4px rgba(20, 121, 232, 0.08);
+}
+
+.register-page .upload-area input[type="file"] {
+    position: absolute;
+    z-index: 2;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.register-page .upload-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #123b67;
+    text-align: left;
+}
+
+.register-page .upload-placeholder > i {
+    display: grid;
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
+    place-items: center;
+    border-radius: 14px;
+    background: #eaf3ff;
+    color: #1479e8;
+    font-size: 24px;
+}
+
+.register-page .upload-placeholder > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.register-page .upload-placeholder strong {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.register-page .upload-placeholder span {
+    color: #728197;
+    font-size: 13px;
+}
+
+.register-page .upload-area.has-preview {
+    min-height: 220px;
+}
+
+.register-page .upload-area.has-preview .upload-placeholder {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 1;
+    padding: 8px 12px;
+    border: 1px solid rgba(219, 228, 239, 0.9);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.94);
+    font-size: 12px;
+}
+
+.register-page .upload-area.has-preview .upload-placeholder > i,
+.register-page .upload-area.has-preview .upload-placeholder span {
+    display: none;
+}
+
+.register-page .image-preview {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 170px;
+}
+
+.register-page .image-preview img {
+    width: 100%;
+    max-height: 310px;
+    border-radius: 9px;
+    object-fit: contain;
+}
+
+.register-page .register-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid #edf1f6;
+}
+
+.register-page .register-cancel-button,
+.register-page .register-submit-button {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 11px 19px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.register-page .register-cancel-button {
+    border-color: #dbe4ef;
+    background: #fff;
+    color: #52657a;
+}
+
+.register-page .register-cancel-button:hover {
+    border-color: #b9c8d8;
+    background: #f8fafc;
+}
+
+.register-page .register-submit-button {
+    background: #1479e8;
+    color: #fff;
+    box-shadow: 0 5px 14px rgba(20, 121, 232, 0.2);
+    cursor: pointer;
+}
+
+.register-page .register-submit-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #1268c5;
+    box-shadow: 0 8px 18px rgba(20, 121, 232, 0.25);
+}
+
+.register-page .register-submit-button:disabled {
+    opacity: 0.72;
+    cursor: wait;
+}
+
+.register-page .register-tips-card {
+    margin-top: 27px;
+    padding: 20px 22px;
+    border: 1px solid #dceaff;
+    border-radius: 14px;
+    background: #f7faff;
+}
+
+.register-page .register-tips-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.register-page .register-tips-heading > span {
+    display: grid;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #eaf3ff;
+    color: #1479e8;
+}
+
+.register-page .register-tips-heading h2 {
+    margin: 0;
+    color: #123b67;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.register-page .tips-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-left: 20px;
+    color: #53657a;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .register-hero {
+        min-height: 180px;
+        padding: 30px 20px;
+    }
+
+    .register-hero-content {
+        align-items: flex-start;
+        gap: 13px;
+    }
+
+    .register-hero-icon {
+        flex-basis: 44px;
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        font-size: 20px;
+    }
+
+    .register-hero-content > div > p:last-child {
+        max-width: 38ch;
+        font-size: 14px;
+    }
+
+    .register-shell {
+        width: calc(100% - 28px);
+        margin: 22px auto 40px;
+    }
+
+    .register-card.form-card-modern {
+        padding: 23px 18px;
+        border-radius: 16px;
+    }
+
+    .register-card-heading {
+        margin-bottom: 22px;
+        padding-bottom: 18px;
+    }
+
+    .register-page .field-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 19px;
+    }
+
+    .register-page .form-group.span-2 {
+        grid-column: auto;
+    }
+
+    .register-page .register-form-actions {
+        align-items: stretch;
+    }
+
+    .register-page .register-cancel-button,
+    .register-page .register-submit-button {
+        flex: 1;
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+}
+
+@media (max-width: 420px) {
+    .register-hero {
+        min-height: 165px;
+        padding: 26px 16px;
+    }
+
+    .register-hero-icon {
+        display: none;
+    }
+
+    .register-shell {
+        width: calc(100% - 20px);
+        margin-top: 15px;
+    }
+
+    .register-card.form-card-modern {
+        padding: 19px 14px;
+    }
+
+    .register-page .status-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .register-page .status-pill {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .register-page .register-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .register-page .register-cancel-button,
+    .register-page .register-submit-button {
+        width: 100%;
+    }
+
+    .register-page .upload-placeholder {
+        gap: 10px;
+    }
+
+    .register-page .upload-placeholder > i {
+        flex-basis: 42px;
+        width: 42px;
+        height: 42px;
+        font-size: 20px;
+    }
+}
+

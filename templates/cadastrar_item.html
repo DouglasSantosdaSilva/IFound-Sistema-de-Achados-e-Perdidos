@@ -5,129 +5,148 @@
 
 {% block content %}
 <section class="register-page">
-    <div class="register-shell">
-        <div class="register-header">
-            <p class="eyebrow">Cadastro</p>
-            <h1>{% if edit_mode %}Editar item{% else %}Cadastrar item{% endif %}</h1>
-            <p class="page-subtitle">
-                {% if edit_mode %}Atualize os dados deste item já registrado.{% else %}Publique um item perdido ou encontrado para ajudar a comunidade acadêmica.{% endif %}
-            </p>
+    <section class="register-hero" style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');">
+        <div class="register-hero-overlay"></div>
+        <div class="register-hero-content">
+            <span class="register-hero-icon"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+            <div>
+                <p class="register-hero-eyebrow">IFound · Achados e Perdidos</p>
+                <h1>{% if edit_mode %}Editar item{% else %}Cadastrar Novo Item{% endif %}</h1>
+                <p>{% if edit_mode %}Atualize os dados deste item já registrado.{% else %}Preencha as informações do item que você deseja cadastrar.{% endif %}</p>
+            </div>
         </div>
+    </section>
 
-        <div class="register-layout">
-            <div class="register-card form-card-modern">
-                <form id="itemForm" method="POST" enctype="multipart/form-data" novalidate>
-                    {% csrf_token %}
-                    {% if edit_mode and item %}
-                        <input type="hidden" name="item_id" value="{{ item.id }}">
-                    {% endif %}
+    <main class="register-shell">
+        <section class="register-card form-card-modern" aria-labelledby="registerFormTitle">
+            <header class="register-card-heading">
+                <span class="register-heading-icon"><i class="bi bi-clipboard-plus" aria-hidden="true"></i></span>
+                <div>
+                    <h2 id="registerFormTitle">Informações do Item</h2>
+                    <p>Preencha todos os campos com atenção.</p>
+                </div>
+            </header>
 
-                    <div class="field-grid">
-                        <div class="form-group span-2">
-                            <label for="nome" class="form-label">Tipo do objeto</label>
-                            <input
-                                type="text"
-                                name="nome"
-                                id="nome"
-                                class="form-input"
-                                value="{% if edit_mode and item %}{{ item.nome }}{% endif %}"
-                                placeholder="Ex.: mochila, carteira, caderno"
-                                required
-                            >
-                            <small class="field-hint">Descreva o nome ou tipo do objeto com clareza.</small>
-                        </div>
+            {% if messages %}
+                <div class="register-messages" aria-live="polite">
+                    {% for message in messages %}
+                        <p class="register-message {{ message.tags }}"><i class="bi bi-info-circle" aria-hidden="true"></i>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                        <div class="form-group span-2">
-                            <label for="descricao" class="form-label">Descrição</label>
-                            <textarea
-                                name="descricao"
-                                id="descricao"
-                                class="form-input form-textarea"
-                                rows="4"
-                                placeholder="Informe características, marca, cores e detalhes importantes."
-                                required
-                            >{% if edit_mode and item %}{{ item.descricao }}{% endif %}</textarea>
-                        </div>
+            <form id="itemForm" method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                {% if edit_mode and item %}
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                {% endif %}
 
-                        <div class="form-group">
-                            <label for="local" class="form-label">Local</label>
-                            <input
-                                type="text"
-                                name="local"
-                                id="local"
-                                class="form-input"
-                                value="{% if edit_mode and item %}{{ item.local }}{% endif %}"
-                                placeholder="Ex.: biblioteca, bloco A"
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="data" class="form-label">Data</label>
-                            <input
-                                type="date"
-                                name="data"
-                                id="data"
-                                class="form-input"
-                                value="{% if edit_mode and item %}{{ item.data_registro|date:'Y-m-d' }}{% endif %}"
-                                required
-                            >
-                        </div>
+                <div class="field-grid">
+                    <div class="form-group span-2">
+                        <label for="nome" class="form-label">Tipo do objeto</label>
+                        <input
+                            type="text"
+                            name="nome"
+                            id="nome"
+                            class="form-input"
+                            value="{% if edit_mode and item %}{{ item.nome }}{% endif %}"
+                            placeholder="Ex.: mochila, carteira, caderno"
+                            required
+                        >
+                        <small class="field-hint">Descreva o nome ou tipo do objeto com clareza.</small>
                     </div>
 
-                    <div class="form-group status-block">
-                        <label class="form-label">Você achou ou perdeu?</label>
-                        <div class="status-options" id="statusGroup">
-                            <label class="status-option">
-                                <input type="radio" name="status" value="achei">
-                                <span class="status-pill status-achado">
-                                    <i class="bi bi-check-circle"></i>
-                                    Achei
-                                </span>
-                            </label>
-
-                            <label class="status-option">
-                                <input type="radio" name="status" value="perdi">
-                                <span class="status-pill status-perdido">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                    Perdi
-                                </span>
-                            </label>
-                        </div>
+                    <div class="form-group span-2">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea
+                            name="descricao"
+                            id="descricao"
+                            class="form-input form-textarea"
+                            rows="4"
+                            placeholder="Informe características, marca, cores e detalhes importantes."
+                            required
+                        >{% if edit_mode and item %}{{ item.descricao }}{% endif %}</textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="imagem" class="form-label">Foto do objeto</label>
-                        <div id="uploadArea" class="upload-area {% if edit_mode and item and item.imagem %}has-preview{% endif %}" tabindex="0" role="button" aria-label="Selecionar imagem do objeto">
-                            <input type="file" name="imagem" id="imagem" accept="image/jpeg,image/png,image/webp,image/jpg">
-                            <div class="upload-placeholder">
-                                <i class="bi bi-cloud-upload"></i>
-                                <div>
-                                    <strong>Arraste uma imagem aqui</strong>
-                                    <span>ou clique para selecionar</span>
-                                </div>
-                            </div>
-                            <div id="imagePreview" class="image-preview" {% if edit_mode and item and item.imagem %}style="display:block;"{% endif %}>
-                                {% if edit_mode and item and item.imagem %}
-                                    <img src="{{ item.imagem.url }}" alt="Imagem atual do item">
-                                {% endif %}
+                        <label for="local" class="form-label">Local</label>
+                        <input
+                            type="text"
+                            name="local"
+                            id="local"
+                            class="form-input"
+                            value="{% if edit_mode and item %}{{ item.local }}{% endif %}"
+                            placeholder="Ex.: biblioteca, bloco A"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data" class="form-label">Data</label>
+                        <input
+                            type="date"
+                            name="data"
+                            id="data"
+                            class="form-input"
+                            value="{% if edit_mode and item %}{{ item.data_registro|date:'Y-m-d' }}{% endif %}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group status-block">
+                    <label class="form-label">Você achou ou perdeu?</label>
+                    <div class="status-options" id="statusGroup">
+                        <label class="status-option">
+                            <input type="radio" name="status" value="achei">
+                            <span class="status-pill status-achado">
+                                <i class="bi bi-check-circle"></i>
+                                Achei
+                            </span>
+                        </label>
+
+                        <label class="status-option">
+                            <input type="radio" name="status" value="perdi">
+                            <span class="status-pill status-perdido">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Perdi
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group register-photo-group">
+                    <label for="imagem" class="form-label">Foto do Objeto</label>
+                    <div id="uploadArea" class="upload-area {% if edit_mode and item and item.imagem %}has-preview{% endif %}" tabindex="0" role="button" aria-label="Selecionar imagem do objeto">
+                        <input type="file" name="imagem" id="imagem" accept="image/jpeg,image/png,image/webp,image/jpg">
+                        <div class="upload-placeholder">
+                            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+                            <div>
+                                <strong>Clique para selecionar uma imagem</strong>
+                                <span>ou arraste e solte aqui</span>
                             </div>
                         </div>
-                        <small class="field-hint">Formatos suportados: JPG, JPEG, PNG e WEBP. Tamanho máximo permitido: 5MB.</small>
+                        <div id="imagePreview" class="image-preview" {% if edit_mode and item and item.imagem %}style="display:block;"{% endif %}>
+                            {% if edit_mode and item and item.imagem %}
+                                <img src="{{ item.imagem.url }}" alt="Imagem atual do item">
+                            {% endif %}
+                        </div>
                     </div>
+                    <small class="field-hint">Formatos suportados: JPG, JPEG, PNG e WEBP. Tamanho máximo permitido: 5MB.</small>
+                </div>
 
-                    <div class="form-actions">
-                        <a href="{% url 'meus_itens' %}" class="btn btn-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-primary btn-submit">
-                            {% if edit_mode %}Salvar alterações{% else %}Cadastrar item{% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="register-form-actions">
+                    <a href="{% url 'meus_itens' %}" class="register-cancel-button">Cancelar</a>
+                    <button type="submit" class="register-submit-button">
+                        <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                        <span id="submitButtonLabel">{% if edit_mode %}Salvar alterações{% else %}Cadastrar Item{% endif %}</span>
+                    </button>
+                </div>
+            </form>
 
-            <aside class="register-card info-card">
-                <div class="info-card-header">
-                    <i class="bi bi-lightbulb"></i>
+            <aside class="register-tips-card">
+                <div class="register-tips-heading">
+                    <span><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
                     <h2>Dicas para um item bem descrito</h2>
                 </div>
                 <ul class="tips-list">
@@ -136,8 +155,8 @@
                     <li>Descreva o ocorrido com as informações mais relevantes.</li>
                 </ul>
             </aside>
-        </div>
-    </div>
+        </section>
+    </main>
 </section>
 
 <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
@@ -150,6 +169,7 @@
         const imagePreview = document.getElementById('imagePreview');
         const toastContainer = document.getElementById('toast-container');
         const submitButton = form?.querySelector('button[type="submit"]');
+        const submitButtonLabel = document.getElementById('submitButtonLabel');
 
         function showToast(title, message, type = 'info') {
             if (!toastContainer) return;
@@ -250,6 +270,27 @@
             setPreview(file);
         });
 
+        uploadArea?.addEventListener('dragover', function (event) {
+            event.preventDefault();
+            uploadArea.classList.add('is-dragging');
+        });
+        uploadArea?.addEventListener('dragleave', function (event) {
+            if (!uploadArea.contains(event.relatedTarget)) {
+                uploadArea.classList.remove('is-dragging');
+            }
+        });
+        uploadArea?.addEventListener('drop', function (event) {
+            event.preventDefault();
+            uploadArea.classList.remove('is-dragging');
+            const file = event.dataTransfer?.files?.[0];
+            if (file && imageInput) {
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                imageInput.files = transfer.files;
+                setPreview(file);
+            }
+        });
+
         uploadArea?.addEventListener('click', () => imageInput?.click());
         uploadArea?.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -281,7 +322,7 @@
 
             if (submitButton) {
                 submitButton.disabled = true;
-                submitButton.textContent = 'Cadastrando...';
+                if (submitButtonLabel) submitButtonLabel.textContent = 'Cadastrando...';
             }
 
             try {
@@ -314,7 +355,7 @@
             } finally {
                 if (submitButton) {
                     submitButton.disabled = false;
-                    submitButton.textContent = '{% if edit_mode %}Salvar alterações{% else %}Cadastrar item{% endif %}';
+                    if (submitButtonLabel) submitButtonLabel.textContent = '{% if edit_mode %}Salvar alterações{% else %}Cadastrar Item{% endif %}';
                 }
             }
         });
