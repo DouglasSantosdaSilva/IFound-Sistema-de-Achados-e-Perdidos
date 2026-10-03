@@ -5,111 +5,149 @@
 
 {% block content %}
 <section class="my-items-page">
-    <div class="page-shell">
-        <header class="page-header">
-            <div>
-                <p class="eyebrow">Painel do usuário</p>
-                <h1>Meus Itens</h1>
-                <p class="page-subtitle">Acompanhe os itens que você perdeu ou encontrou.</p>
-            </div>
-        </header>
-
-        <div class="summary-grid" aria-label="Resumo dos itens">
-            <div class="summary-card total">
-                <div class="summary-icon"><i class="bi bi-box-seam"></i></div>
-                <div>
-                    <strong id="totalItemsCount">0</strong>
-                    <span>Total de itens</span>
-                </div>
-            </div>
-            <div class="summary-card lost">
-                <div class="summary-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                <div>
-                    <strong id="lostItemsCount">0</strong>
-                    <span>Perdidos</span>
-                </div>
-            </div>
-            <div class="summary-card found">
-                <div class="summary-icon"><i class="bi bi-check-circle"></i></div>
-                <div>
-                    <strong id="foundItemsCount">0</strong>
-                    <span>Encontrados</span>
-                </div>
-            </div>
-            <div class="summary-card review">
-                <div class="summary-icon"><i class="bi bi-hourglass-split"></i></div>
-                <div>
-                    <strong id="reviewItemsCount">0</strong>
-                    <span>Em análise</span>
-                </div>
-            </div>
+    <section class="my-items-hero" style="background-image: url('{% static 'img/Campus-IFRN São Paulo do Potengi.png' %}');">
+        <div class="my-items-hero-overlay"></div>
+        <div class="my-items-hero-content">
+            <p class="my-items-hero-eyebrow">Painel do usuário</p>
+            <h1>Meus Itens</h1>
+            <p>Acompanhe os itens que você cadastrou no sistema.</p>
         </div>
+    </section>
 
-        <section class="filters-panel" aria-label="Filtros de itens">
-            <div class="filter-group search-field">
-                <label for="searchInput" class="sr-only">Buscar item</label>
-                <span class="input-icon"><i class="bi bi-search"></i></span>
-                <input id="searchInput" type="search" placeholder="Buscar item..." aria-label="Buscar item">
-            </div>
+    <div class="my-items-layout">
+        <aside class="profile-sidebar my-items-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+                <a class="profile-menu-item" href="{% url 'perfil' %}">
+                    <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                    <span>Informações</span>
+                </a>
+                <a class="profile-menu-item active" href="{% url 'meus_itens' %}" aria-current="page">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>Meus Itens</span>
+                </a>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <span>Minhas Solicitações</span>
+                </span>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <span>Alterar Senha</span>
+                </span>
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
 
-            <div class="filter-group select-field">
-                <label for="statusFilter" class="sr-only">Filtrar por status</label>
-                <select id="statusFilter" aria-label="Filtrar por status">
-                    <option value="todos">Todos</option>
-                    <option value="perdido">Perdido</option>
-                    <option value="encontrado">Encontrado</option>
-                    <option value="em-analise">Em análise</option>
-                </select>
-            </div>
+        <main class="my-items-main">
+            <section class="my-items-card" aria-labelledby="myItemsHeading">
+                <header class="my-items-card-heading">
+                    <span class="my-items-heading-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 id="myItemsHeading">Meus Itens</h2>
+                        <p>Confira os itens que você cadastrou no sistema.</p>
+                    </div>
+                </header>
 
-            <div class="filter-group date-field">
-                <label for="dateFilter" class="sr-only">Filtrar por data</label>
-                <input id="dateFilter" type="date" aria-label="Filtrar por data">
-            </div>
+                <div class="summary-grid" aria-label="Resumo dos itens">
+                    <div class="summary-card total">
+                        <div class="summary-icon"><i class="bi bi-box-seam"></i></div>
+                        <div>
+                            <strong id="totalItemsCount">0</strong>
+                            <span>Total de itens</span>
+                        </div>
+                    </div>
+                    <div class="summary-card lost">
+                        <div class="summary-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                        <div>
+                            <strong id="lostItemsCount">0</strong>
+                            <span>Perdidos</span>
+                        </div>
+                    </div>
+                    <div class="summary-card found">
+                        <div class="summary-icon"><i class="bi bi-check-circle"></i></div>
+                        <div>
+                            <strong id="foundItemsCount">0</strong>
+                            <span>Encontrados</span>
+                        </div>
+                    </div>
+                    <div class="summary-card review">
+                        <div class="summary-icon"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <strong id="reviewItemsCount">0</strong>
+                            <span>Em análise</span>
+                        </div>
+                    </div>
+                </div>
 
-            <button id="clearFiltersBtn" type="button" class="btn btn-secondary">Limpar filtros</button>
-        </section>
+                <section class="filters-panel" aria-label="Filtros de itens">
+                    <div class="filter-group search-field">
+                        <label for="searchInput" class="sr-only">Buscar item</label>
+                        <span class="input-icon"><i class="bi bi-search"></i></span>
+                        <input id="searchInput" type="search" placeholder="Buscar por nome, descrição ou categoria..." aria-label="Buscar item">
+                    </div>
 
-        <div class="table-card">
-            <div id="tableLoading" class="table-loading" hidden>
-                <div class="spinner"></div>
-                <span>Carregando itens...</span>
-            </div>
+                    <div class="filter-group select-field">
+                        <label for="statusFilter" class="sr-only">Filtrar por status</label>
+                        <select id="statusFilter" aria-label="Filtrar por status">
+                            <option value="todos">Todos</option>
+                            <option value="perdido">Perdido</option>
+                            <option value="encontrado">Encontrado</option>
+                            <option value="em-analise">Em análise</option>
+                        </select>
+                    </div>
 
-            <div class="table-wrapper">
-                <table id="itemsTable" class="items-table" hidden>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Item</th>
-                            <th>Data</th>
-                            <th>Detalhes</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itensTableBody"></tbody>
-                </table>
-            </div>
+                    <div class="filter-group date-field">
+                        <label for="dateFilter" class="sr-only">Filtrar por data</label>
+                        <input id="dateFilter" type="date" aria-label="Filtrar por data">
+                    </div>
 
-            <div id="emptyState" class="empty-state" hidden>
-                <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
-                <h3>Você ainda não possui itens cadastrados.</h3>
-                <p>Cadastre um item perdido ou encontrado para começar.</p>
-                <a href="{% url 'cadastrar_item' %}" class="btn btn-primary">+ Cadastrar item</a>
-            </div>
+                    <button id="clearFiltersBtn" type="button" class="btn btn-secondary">Limpar filtros</button>
+                </section>
 
-            <div id="errorState" class="error-state" hidden>
-                <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
-                <h3>Não foi possível carregar seus itens.</h3>
-                <button id="retryItemsBtn" type="button" class="btn btn-primary">Tentar novamente</button>
-            </div>
-        </div>
+                <div class="table-card">
+                    <div id="tableLoading" class="table-loading" hidden>
+                        <div class="spinner"></div>
+                        <span>Carregando itens...</span>
+                    </div>
 
-        <div class="pagination-bar" aria-label="Paginação de itens">
-            <div id="paginationInfo" class="pagination-info"></div>
-            <div id="paginationControls" class="pagination-controls"></div>
-        </div>
+                    <div class="table-wrapper">
+                        <table id="itemsTable" class="items-table" hidden>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Item</th>
+                                    <th>Data</th>
+                                    <th>Detalhes</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itensTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="emptyState" class="empty-state" hidden>
+                        <div class="empty-icon"><i class="bi bi-inboxes"></i></div>
+                        <h3>Você ainda não possui itens cadastrados.</h3>
+                        <p>Cadastre um item perdido ou encontrado para começar.</p>
+                        <a href="{% url 'cadastrar_item' %}" class="btn btn-primary">+ Cadastrar item</a>
+                    </div>
+
+                    <div id="errorState" class="error-state" hidden>
+                        <div class="empty-icon"><i class="bi bi-exclamation-circle"></i></div>
+                        <h3>Não foi possível carregar seus itens.</h3>
+                        <button id="retryItemsBtn" type="button" class="btn btn-primary">Tentar novamente</button>
+                    </div>
+                </div>
+
+                <div class="pagination-bar" aria-label="Paginação de itens">
+                    <div id="paginationInfo" class="pagination-info"></div>
+                    <div id="paginationControls" class="pagination-controls"></div>
+                </div>
+            </section>
+        </main>
     </div>
 </section>
 
