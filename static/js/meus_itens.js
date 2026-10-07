@@ -208,10 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSummary(data) {
         if (!data || !summaryMap.total) return;
 
-        const total = Number(data.totalItems || 0);
+        const total = Number(data.total || data.totalItems || 0);
         const perdido = Number(data.perdidos || 0);
         const encontrado = Number(data.encontrados || 0);
-        const analise = Number(data.emAnalise || 0);
+        const analise = Number(data.em_analise ?? data.emAnalise ?? 0);
 
         summaryMap.total.textContent = total;
         summaryMap.perdido.textContent = perdido;
@@ -284,8 +284,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         try {
-            const response = await fetch(`{% url 'meus_itens' %}?${params.toString()}`, {
-                headers: getCsrfHeaders(),
+            const url = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+            const response = await fetch(url, {
+                headers: {
+                    ...getCsrfHeaders(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
 
             if (!response.ok) {
@@ -298,8 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data?.message || 'Não foi possível carregar seus itens.');
             }
 
-            const items = Array.isArray(data.data) ? data.data : [];
-            const summary = data.summary || {};
+            const items = Array.isArray(data.items) ? data.items : [];
+            const summary = data.stats || data.summary || {};
             const pagination = data.pagination || null;
 
             renderTable(items);
@@ -326,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function deleteItem(itemId) {
-        const url = `{% url 'meus_itens' %}`;
+        const url = window.location.href.split('?')[0];
 
         try {
             const response = await fetch(url, {

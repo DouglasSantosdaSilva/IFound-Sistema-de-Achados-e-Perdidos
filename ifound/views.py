@@ -41,6 +41,8 @@ def _status_filter_value(value):
         return 'perdi'
     if value == 'encontrado':
         return 'achei'
+    if value == 'em-analise':
+        return 'em-analise'
     return None
 
 
@@ -519,14 +521,12 @@ def meus_itens(request):
         )
 
     if status_filter and status_filter != 'todos':
-        normalized_status = _status_filter_value(
-            status_filter
-        )
+        normalized_status = _status_filter_value(status_filter)
 
-        if normalized_status:
-            queryset = queryset.filter(
-                status=normalized_status
-            )
+        if normalized_status == 'em-analise':
+            queryset = queryset.exclude(status__in=['achei', 'perdi'])
+        elif normalized_status:
+            queryset = queryset.filter(status=normalized_status)
 
     if date_filter:
         queryset = queryset.filter(
@@ -534,20 +534,9 @@ def meus_itens(request):
         )
 
     total_items = queryset.count()
-
-    total_perdidos = queryset.filter(
-        status='perdi'
-    ).count()
-
-    total_encontrados = queryset.filter(
-        status='achei'
-    ).count()
-
-    total_em_analise = 0
-
-    # ---------------------------------------------
-    # AÇÕES AJAX
-    # ---------------------------------------------
+    total_perdidos = queryset.filter(status='perdi').count()
+    total_encontrados = queryset.filter(status='achei').count()
+    total_em_analise = queryset.exclude(status__in=['achei', 'perdi']).count()
 
     if request.method == 'POST' and is_ajax:
         try:
@@ -595,30 +584,15 @@ def meus_itens(request):
             status=400
         )
 
-    # ---------------------------------------------
-    # PAGINAÇÃO
-    # ---------------------------------------------
-
     page_number = request.GET.get('page', 1)
 
     try:
         page_number = int(page_number)
-
     except (TypeError, ValueError):
         page_number = 1
 
-    paginator = Paginator(
-        queryset,
-        10
-    )
-
-    page_obj = paginator.get_page(
-        page_number
-    )
-
-    # ---------------------------------------------
-    # DADOS DOS ITENS
-    # ---------------------------------------------
+    paginator = Paginator(queryset, 10)
+    page_obj = paginator.get_page(page_number)
 
     items_payload = [
         {
@@ -636,6 +610,13 @@ def meus_itens(request):
         for item in page_obj.object_list
     ]
 
+    stats = {
+        'total': total_items,
+        'perdidos': total_perdidos,
+        'encontrados': total_encontrados,
+        'em_analise': total_em_analise,
+    }
+
     summary = {
         'totalItems': total_items,
         'perdidos': total_perdidos,
@@ -643,16 +624,14 @@ def meus_itens(request):
         'emAnalise': total_em_analise,
     }
 
-    # ---------------------------------------------
-    # RESPOSTA AJAX
-    # ---------------------------------------------
-
     if is_ajax:
         return JsonResponse(
             {
                 'success': True,
                 'message': 'Itens carregados com sucesso.',
+                'items': items_payload,
                 'data': items_payload,
+                'stats': stats,
                 'summary': summary,
                 'pagination': {
                     'page': page_obj.number,
@@ -661,10 +640,6 @@ def meus_itens(request):
                 },
             }
         )
-
-    # ---------------------------------------------
-    # PÁGINA NORMAL
-    # ---------------------------------------------
 
     return render(
         request,
