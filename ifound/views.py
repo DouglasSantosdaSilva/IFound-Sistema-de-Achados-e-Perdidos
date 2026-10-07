@@ -1,10 +1,13 @@
 import json
+import os
 
+from PIL import Image, UnidentifiedImageError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.files.images import ImageFile
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.urls import reverse
@@ -191,6 +194,32 @@ def perfil_view(request):
     perfil, _ = Perfil.objects.get_or_create(
         user=request.user
     )
+
+    if request.method == 'POST':
+        foto = request.FILES.get('foto')
+        extensoes_permitidas = {'.jpg', '.jpeg', '.png', '.webp'}
+        mensagem_erro = 'Não foi possível atualizar sua foto de perfil.'
+
+        if not foto or os.path.splitext(foto.name)[1].lower() not in extensoes_permitidas or foto.size > 5 * 1024 * 1024:
+            return JsonResponse({'success': False, 'message': mensagem_erro}, status=400)
+
+        try:
+            with Image.open(foto) as imagem:
+                if imagem.format not in {'JPEG', 'PNG', 'WEBP'}:
+                    return JsonResponse({'success': False, 'message': mensagem_erro}, status=400)
+                imagem.verify()
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+            return JsonResponse({'success': False, 'message': mensagem_erro}, status=400)
+
+        foto.seek(0)
+        perfil.foto = foto
+        perfil.save(update_fields=['foto'])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Foto de perfil atualizada com sucesso!',
+            'url': perfil.foto.url,
+        })
 
     return render(
         request,

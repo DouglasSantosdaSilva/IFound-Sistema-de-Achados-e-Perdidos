@@ -7,7 +7,7 @@ class Perfil(models.Model):
     vinculo = models.CharField(max_length=50, default='Aluno(a)')
     curso = models.CharField(max_length=255, blank=True, null=True)
     turma = models.CharField(max_length=100, blank=True, null=True)
-    foto_url = models.URLField(max_length=500, blank=True, null=True)
+    foto = models.ImageField(upload_to='perfis/', blank=True, null=True)
 
 def __str__(self):
         return f"Perfil de {self.user.username}"

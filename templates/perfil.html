@@ -41,14 +41,15 @@
         <main class="profile-main">
             <section class="profile-identity-card" aria-label="Identificação do usuário">
                 <div class="profile-identity-avatar">
-                    {% if perfil.foto_url %}
-                        <img src="{{ perfil.foto_url }}" alt="Foto de {{ perfil.nome_completo|default:user.username }}">
+                    {% if perfil.foto %}
+                        <img id="profileAvatarImage" src="{{ perfil.foto.url }}" alt="Foto de {{ perfil.nome_completo|default:user.username }}">
                     {% else %}
                         <i class="bi bi-person-fill" aria-hidden="true"></i>
                     {% endif %}
-                    <a href="#" class="profile-photo-edit" aria-label="Editar foto do perfil" title="Editar foto do perfil">
+                    <a href="#" class="profile-photo-edit" id="profilePhotoEdit" data-upload-url="{% url 'perfil' %}" aria-label="Editar foto do perfil" title="Editar foto do perfil">
                         <i class="bi bi-camera-fill" aria-hidden="true"></i>
                     </a>
+                    <input type="file" id="profileImageInput" name="foto" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" hidden>
                 </div>
                 <div class="profile-identity-info">
                     <h2>{{ perfil.nome_completo|default:user.username }}</h2>
@@ -99,4 +100,58 @@
         </main>
     </div>
 </div>
+<script>
+    (() => {
+        const fileInput = document.getElementById('profileImageInput');
+        const editButton = document.getElementById('profilePhotoEdit');
+        const avatar = document.querySelector('.profile-identity-avatar');
+        const errorMessage = 'Não foi possível atualizar sua foto de perfil.';
+
+        editButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('foto', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            try {
+                const response = await fetch(editButton.dataset.uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    window.alert(result.message || errorMessage);
+                    return;
+                }
+
+                let avatarImage = document.getElementById('profileAvatarImage');
+                if (!avatarImage) {
+                    avatarImage = document.createElement('img');
+                    avatarImage.id = 'profileAvatarImage';
+                    avatarImage.alt = 'Foto de perfil';
+                    avatar.querySelector('.bi-person-fill')?.remove();
+                    avatar.prepend(avatarImage);
+                }
+                avatarImage.src = result.url;
+                window.alert(result.message);
+            } catch {
+                window.alert(errorMessage);
+            } finally {
+                fileInput.value = '';
+            }
+        });
+    })();
+</script>
 {% endblock %}
