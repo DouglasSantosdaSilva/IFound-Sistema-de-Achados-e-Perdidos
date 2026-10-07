@@ -2439,6 +2439,88 @@ a.profile-menu-item:hover i {
     color: #fff;
 }
 
+.profile-notice {
+    padding: 13px 16px;
+    border: 1px solid #b7e4c7;
+    border-radius: 10px;
+    background: #effaf3;
+    color: #216e3a;
+    font-size: 14px;
+}
+
+.profile-notice-error {
+    margin-bottom: 22px;
+    border-color: #f1b8bd;
+    background: #fff4f4;
+    color: #a12b35;
+}
+
+.profile-notice p {
+    margin: 0;
+}
+
+.profile-notice p + p {
+    margin-top: 5px;
+}
+
+.profile-edit-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+}
+
+.profile-form-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.profile-form-field label {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.profile-form-field input {
+    width: 100%;
+    min-height: 45px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+}
+
+.profile-form-field input:focus {
+    border-color: #0d6efd;
+    outline: 3px solid rgba(13, 110, 253, 0.15);
+}
+
+.profile-cancel-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.profile-cancel-button:hover {
+    background: #f2f7ff;
+    color: #123b63;
+}
+
+.profile-edit-form .profile-information-actions {
+    gap: 12px;
+}
+
 @media (max-width: 760px) {
     .profile-hero {
         min-height: 190px;
@@ -2518,7 +2600,20 @@ a.profile-menu-item:hover i {
         gap: 17px;
     }
 
+    .profile-edit-fields {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 17px;
+    }
+
     .profile-information-actions .profile-edit-button {
+        width: 100%;
+    }
+
+    .profile-edit-form .profile-information-actions {
+        flex-direction: column-reverse;
+    }
+
+    .profile-edit-form .profile-cancel-button {
         width: 100%;
     }
 }

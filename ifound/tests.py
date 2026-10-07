@@ -7,6 +7,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from .models import Perfil
+
 
 class ProfilePhotoUploadTests(TestCase):
 	def setUp(self):
@@ -17,7 +19,7 @@ class ProfilePhotoUploadTests(TestCase):
 		self.addCleanup(media_settings.disable)
 
 		self.user = User.objects.create_user(username='12345', password='test-password')
-		self.profile = self.user.perfil
+		self.profile, _ = Perfil.objects.get_or_create(user=self.user)
 		self.client.force_login(self.user)
 
 	def _jpeg_upload(self, name='profile.jpg'):
@@ -54,5 +56,82 @@ class ProfilePhotoUploadTests(TestCase):
 	def test_upload_requires_authentication(self):
 		self.client.logout()
 		response = self.client.post(reverse('perfil'), {'foto': self._jpeg_upload()})
+
+		self.assertEqual(response.status_code, 302)
+
+
+class EditProfileTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(
+			username='12345',
+			email='aluno@example.com',
+			password='test-password'
+		)
+		self.profile, _ = Perfil.objects.get_or_create(user=self.user)
+		self.profile.nome_completo = 'Nome Atual'
+		self.profile.curso = 'Curso Atual'
+		self.profile.turma = 'Turma Atual'
+		self.profile.save()
+		self.client.force_login(self.user)
+
+	def test_get_shows_current_profile_data(self):
+		response = self.client.get(reverse('editar_perfil'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'value="Nome Atual"')
+		self.assertContains(response, 'value="aluno@example.com"')
+		self.assertContains(response, 'value="Curso Atual"')
+		self.assertContains(response, 'value="Turma Atual"')
+
+	def test_post_updates_own_user_and_profile_then_redirects(self):
+		response = self.client.post(reverse('editar_perfil'), {
+			'nome_completo': 'Nome Atualizado',
+			'email': 'novo@example.com',
+			'curso': 'Novo Curso',
+			'turma': 'Nova Turma',
+		})
+
+		self.assertRedirects(response, reverse('perfil'))
+		self.user.refresh_from_db()
+		self.profile.refresh_from_db()
+		self.assertEqual(self.user.email, 'novo@example.com')
+		self.assertEqual(self.user.username, '12345')
+		self.assertEqual(self.profile.nome_completo, 'Nome Atualizado')
+		self.assertEqual(self.profile.curso, 'Novo Curso')
+		self.assertEqual(self.profile.turma, 'Nova Turma')
+		self.assertContains(self.client.get(reverse('perfil')), 'Dados atualizados com sucesso!')
+
+	def test_invalid_fields_are_reported_without_saving(self):
+		response = self.client.post(reverse('editar_perfil'), {
+			'nome_completo': '',
+			'email': 'email-invalido',
+			'curso': '',
+			'turma': '',
+		})
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Informe seu nome completo.')
+		self.assertContains(response, 'Informe um e-mail válido.')
+		self.user.refresh_from_db()
+		self.profile.refresh_from_db()
+		self.assertEqual(self.user.email, 'aluno@example.com')
+		self.assertEqual(self.profile.nome_completo, 'Nome Atual')
+
+	def test_email_used_by_another_user_is_rejected(self):
+		User.objects.create_user(username='67890', email='outro@example.com', password='test-password')
+		response = self.client.post(reverse('editar_perfil'), {
+			'nome_completo': 'Nome Atual',
+			'email': 'outro@example.com',
+			'curso': 'Curso Atual',
+			'turma': 'Turma Atual',
+		})
+
+		self.assertContains(response, 'Este e-mail já está sendo utilizado por outra conta.')
+		self.user.refresh_from_db()
+		self.assertEqual(self.user.email, 'aluno@example.com')
+
+	def test_edit_requires_authentication(self):
+		self.client.logout()
+		response = self.client.get(reverse('editar_perfil'))
 
 		self.assertEqual(response.status_code, 302)

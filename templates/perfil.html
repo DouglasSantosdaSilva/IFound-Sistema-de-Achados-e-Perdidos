@@ -39,6 +39,11 @@
         </aside>
 
         <main class="profile-main">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="profile-notice profile-notice-{{ message.tags }}" role="status">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
             <section class="profile-identity-card" aria-label="Identificação do usuário">
                 <div class="profile-identity-avatar">
                     {% if perfil.foto %}
@@ -91,7 +96,7 @@
                 </div>
 
                 <div class="profile-information-actions">
-                    <a href="#" class="profile-edit-button">
+                    <a href="{% url 'editar_perfil' %}" class="profile-edit-button">
                         <i class="bi bi-pencil-square" aria-hidden="true"></i>
                         <span>Editar dados</span>
                     </a>

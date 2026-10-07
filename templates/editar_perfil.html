@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}IFound - Editar dados do perfil{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <section class="profile-hero" style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');">
+        <div class="profile-hero-overlay"></div>
+        <div class="profile-hero-content">
+            <h1>Meu Perfil</h1>
+        </div>
+    </section>
+
+    <div class="profile-layout">
+        <aside class="profile-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+                <a class="profile-menu-item active" href="{% url 'perfil' %}" aria-current="page">
+                    <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                    <span>Informações</span>
+                </a>
+                <a class="profile-menu-item" href="{% url 'meus_itens' %}">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>Meus Itens</span>
+                </a>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <span>Minhas Solicitações</span>
+                </span>
+                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <span>Alterar Senha</span>
+                </span>
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="profile-main">
+            <section class="profile-information-card profile-edit-card">
+                <div class="profile-section-heading">
+                    <span class="profile-heading-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
+                    <h2>Editar dados do perfil</h2>
+                </div>
+
+                {% if form_errors %}
+                    <div class="profile-notice profile-notice-error" role="alert">
+                        {% for error in form_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="profile-edit-form">
+                    {% csrf_token %}
+                    <div class="profile-edit-fields">
+                        <div class="profile-form-field">
+                            <label for="id_nome_completo">Nome completo</label>
+                            <input id="id_nome_completo" name="nome_completo" type="text" maxlength="255" value="{{ form_data.nome_completo }}" required>
+                        </div>
+                        <div class="profile-form-field">
+                            <label for="id_email">E-mail</label>
+                            <input id="id_email" name="email" type="email" maxlength="254" value="{{ form_data.email }}" required>
+                        </div>
+                        <div class="profile-form-field">
+                            <label for="id_curso">Curso</label>
+                            <input id="id_curso" name="curso" type="text" maxlength="255" value="{{ form_data.curso }}" required>
+                        </div>
+                        <div class="profile-form-field">
+                            <label for="id_turma">Turma</label>
+                            <input id="id_turma" name="turma" type="text" maxlength="100" value="{{ form_data.turma }}" required>
+                        </div>
+                    </div>
+
+                    <div class="profile-information-actions">
+                        <a href="{% url 'perfil' %}" class="profile-cancel-button">Cancelar</a>
+                        <button type="submit" class="profile-edit-button">
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span>Salvar alterações</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -9,6 +9,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.files.images import ImageFile
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse
 
@@ -228,6 +231,64 @@ def perfil_view(request):
         'perfil.html',
         {'perfil': perfil}
     )
+
+
+@login_required
+def editar_perfil(request):
+    perfil, _ = Perfil.objects.get_or_create(user=request.user)
+    form_data = {
+        'nome_completo': perfil.nome_completo or '',
+        'email': request.user.email or '',
+        'curso': perfil.curso or '',
+        'turma': perfil.turma or '',
+    }
+    form_errors = []
+
+    if request.method == 'POST':
+        form_data = {
+            'nome_completo': (request.POST.get('nome_completo') or '').strip(),
+            'email': (request.POST.get('email') or '').strip(),
+            'curso': (request.POST.get('curso') or '').strip(),
+            'turma': (request.POST.get('turma') or '').strip(),
+        }
+
+        if not form_data['nome_completo']:
+            form_errors.append('Informe seu nome completo.')
+        if not form_data['curso']:
+            form_errors.append('Informe seu curso.')
+        if not form_data['turma']:
+            form_errors.append('Informe sua turma.')
+        if not form_data['email']:
+            form_errors.append('Informe seu e-mail.')
+        else:
+            try:
+                validate_email(form_data['email'])
+            except ValidationError:
+                form_errors.append('Informe um e-mail válido.')
+            else:
+                email_em_uso = User.objects.filter(
+                    email__iexact=form_data['email']
+                ).exclude(pk=request.user.pk).exists()
+                if email_em_uso:
+                    form_errors.append('Este e-mail já está sendo utilizado por outra conta.')
+
+        if not form_errors:
+            with transaction.atomic():
+                request.user.email = form_data['email']
+                request.user.save(update_fields=['email'])
+                perfil.nome_completo = form_data['nome_completo']
+                perfil.curso = form_data['curso']
+                perfil.turma = form_data['turma']
+                perfil.save(update_fields=['nome_completo', 'curso', 'turma'])
+
+            messages.success(request, 'Dados atualizados com sucesso!')
+            return redirect('perfil')
+
+    return render(request, 'editar_perfil.html', {
+        'perfil': perfil,
+        'form_data': form_data,
+        'form_errors': form_errors,
+    })
 
 
 # =========================================================
