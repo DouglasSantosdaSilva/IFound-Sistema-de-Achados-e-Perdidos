@@ -90,7 +90,7 @@
 
                         <!-- ACTION BUTTON -->
                         <div class="details-actions">
-                            <button type="button" class="details-action-btn" data-item-id="{{ item.id }}" onclick="document.getElementById('claimFormContainer').scrollIntoView({behavior: 'smooth'})">
+                            <button type="button" id="requestItemButton" class="details-action-btn" data-item-id="{{ item.id }}">
                                 <i class="bi bi-hand-thumbs-up"></i>
                                 <span>Solicitar este item</span>
                             </button>
@@ -166,13 +166,13 @@
                     Para reivindicar este item, você precisa enviar uma foto de comprovação que o identifique como responsável.
                 </p>
 
-                <form method="POST" enctype="multipart/form-data" class="claim-form" id="claimForm">
+                <form method="POST" enctype="multipart/form-data" class="claim-form" id="claimForm" action="{% url 'confirmar_solicitacao' item.id %}">
                     {% csrf_token %}
 
                     <div class="claim-form-group">
                         <label for="fotoComprovante" class="claim-form-label">
                             <i class="bi bi-cloud-upload"></i>
-                            <span>Enviar foto de comprovação</span>
+                            <span id="selectedFileName">Enviar foto de comprovação</span>
                         </label>
                         <input 
                             type="file" 
@@ -182,7 +182,7 @@
                             required
                             class="claim-form-input"
                         >
-                        <p class="claim-form-hint">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</p>
+                        <p class="claim-form-hint">Formatos aceitos: JPG, PNG, WEBP (máx. 5MB)</p>
                     </div>
 
                     <div class="claim-form-actions">

@@ -14,6 +14,10 @@ urlpatterns = [
     path('catalogo/', views.catalogo, name='catalogo'),
 
     path('meus-itens/', views.meus_itens, name='meus_itens'),
+    path('minhas-solicitacoes/', views.minhas_solicitacoes, name='minhas_solicitacoes'),
+    path('solicitacao/<int:id>/', views.detalhar_solicitacao, name='detalhar_solicitacao'),
+    path('item/<int:item_id>/verificar-solicitacao/', views.verificar_solicitacao_item, name='verificar_solicitacao_item'),
+    path('item/<int:item_id>/solicitar/', views.confirmar_solicitacao, name='confirmar_solicitacao'),
 
     path('item/<int:id>/', views.detalhar_item, name='detalhar_item'),
 

@@ -23,7 +23,27 @@ def _status_label(status_value):
         return 'Perdido'
     if status_value == 'achei':
         return 'Encontrado'
+    if status_value == 'aprovada':
+        return 'Aprovada'
+    if status_value == 'recusada':
+        return 'Recusada'
+    if status_value == 'em_analise':
+        return 'Em análise'
+    if status_value == 'pendente':
+        return 'Em análise'
     return 'Em análise'
+
+
+def _status_badge_class(status_value):
+    if status_value == 'perdi':
+        return 'status-perdi'
+    if status_value == 'achei':
+        return 'status-achei'
+    if status_value == 'aprovada':
+        return 'status-achei'
+    if status_value == 'recusada':
+        return 'status-perdi'
+    return 'status-analise'
 
 
 def _serializar_item(item):
@@ -315,6 +335,134 @@ def logout_view(request):
     return redirect('login')
 
 
+@login_required
+def verificar_solicitacao_item(request, item_id):
+    item = get_object_or_404(Item, id=item_id)
+    solicitacao = Solicitacao.objects.filter(
+        item=item,
+        solicitante=request.user,
+    ).order_by('-data_solicitacao').first()
+
+    if solicitacao:
+        return JsonResponse(
+            {
+                'success': True,
+                'exists': True,
+                'message': 'Você já possui uma solicitação para este item.',
+                'redirect_url': reverse('detalhar_solicitacao', args=[solicitacao.id]),
+            }
+        )
+
+    return JsonResponse(
+        {
+            'success': True,
+            'exists': False,
+            'redirect_url': reverse('confirmar_solicitacao', args=[item.id]),
+        }
+    )
+
+
+@login_required
+def confirmar_solicitacao(request, item_id):
+    item = get_object_or_404(Item, id=item_id)
+    solicitacao_existente = Solicitacao.objects.filter(
+        item=item,
+        solicitante=request.user,
+    ).first()
+
+    if solicitacao_existente and request.method == 'GET':
+        return redirect('detalhar_solicitacao', id=solicitacao_existente.id)
+
+    if request.method == 'POST':
+        if solicitacao_existente:
+            return JsonResponse(
+                {
+                    'success': False,
+                    'message': 'Você já possui uma solicitação para este item.',
+                    'exists': True,
+                    'redirect_url': reverse('detalhar_solicitacao', args=[solicitacao_existente.id]),
+                },
+                status=400,
+            )
+
+        foto = request.FILES.get('foto_comprovante')
+
+        if not foto:
+            return JsonResponse(
+                {'success': False, 'message': 'Envie um comprovante para continuar.'},
+                status=400,
+            )
+
+        extensoes_permitidas = {'.jpg', '.jpeg', '.png', '.webp'}
+        if os.path.splitext(foto.name)[1].lower() not in extensoes_permitidas:
+            return JsonResponse(
+                {'success': False, 'message': 'Selecione um arquivo de imagem válido.'},
+                status=400,
+            )
+
+        try:
+            with Image.open(foto) as imagem:
+                if imagem.format not in {'JPEG', 'PNG', 'WEBP', 'GIF'}:
+                    raise ValidationError('Formato inválido')
+                imagem.verify()
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError, ValidationError):
+            return JsonResponse(
+                {'success': False, 'message': 'Selecione um arquivo de imagem válido.'},
+                status=400,
+            )
+
+        foto.seek(0)
+        solicitacao = Solicitacao.objects.create(
+            item=item,
+            solicitante=request.user,
+            foto_comprovante=foto,
+            status='em_analise',
+        )
+
+        return JsonResponse(
+            {
+                'success': True,
+                'message': 'Solicitação enviada com sucesso!',
+                'redirect_url': reverse('minhas_solicitacoes'),
+                'solicitacao_id': solicitacao.id,
+            }
+        )
+
+    return render(
+        request,
+        'confirmar_solicitacao.html',
+        {'item': item, 'solicitacao_existente': solicitacao_existente},
+    )
+
+
+@login_required
+def minhas_solicitacoes(request):
+    solicitacoes = Solicitacao.objects.filter(
+        solicitante=request.user,
+    ).select_related('item').order_by('-data_solicitacao')
+
+    return render(
+        request,
+        'minhas_solicitacoes.html',
+        {'solicitacoes': solicitacoes},
+    )
+
+
+@login_required
+def detalhar_solicitacao(request, id):
+    solicitacao = get_object_or_404(
+        Solicitacao,
+        id=id,
+        solicitante=request.user,
+    )
+
+    return render(
+        request,
+        'detalhes_solicitacao.html',
+        {'solicitacao': solicitacao},
+    )
+
+
 # =========================================================
 # DETALHES DO ITEM
 # =========================================================
@@ -327,24 +475,29 @@ def detalhar_item(request, id):
         foto = request.FILES.get('foto_comprovante')
 
         if foto:
+            solicitacao = Solicitacao.objects.filter(item=item, solicitante=request.user).first()
+            if solicitacao:
+                messages.error(request, 'Você já possui uma solicitação para este item.')
+                return redirect('detalhar_solicitacao', id=solicitacao.id)
+
             Solicitacao.objects.create(
                 item=item,
                 solicitante=request.user,
-                foto_comprovante=foto
+                foto_comprovante=foto,
+                status='em_analise',
             )
 
             messages.success(
                 request,
-                'Sua solicitação e comprovante foram enviados com sucesso!'
+                'Solicitação enviada com sucesso!'
             )
 
-            return redirect('index')
+            return redirect('minhas_solicitacoes')
 
-        else:
-            messages.error(
-                request,
-                'Você precisa anexar uma foto de comprovação.'
-            )
+        messages.error(
+            request,
+            'Envie um comprovante para continuar.'
+        )
 
     return render(
         request,

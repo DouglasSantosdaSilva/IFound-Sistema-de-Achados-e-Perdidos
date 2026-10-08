@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Minhas Solicitações - Found{% endblock %}
+
+{% block content %}
+<section class="my-items-page">
+
+    <!-- HERO -->
+    <section class="my-items-hero" style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');">
+        <div class="my-items-hero-overlay"></div>
+
+        <div class="my-items-hero-content">
+            <p class="my-items-hero-eyebrow">Painel do usuário</p>
+            <h1>Minhas Solicitações</h1>
+            <p>Acompanhe as solicitações que você realizou para recuperar seus itens.</p>
+        </div>
+    </section>
+
+    <!-- CONTEÚDO -->
+    <div class="my-items-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="profile-sidebar my-items-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+
+                <a class="profile-menu-item" href="{% url 'perfil' %}">
+                    <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                    <span>Informações</span>
+                </a>
+
+                <a class="profile-menu-item" href="{% url 'meus_itens' %}">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>Meus Itens</span>
+                </a>
+
+                <a class="profile-menu-item active"
+                   href="{% url 'minhas_solicitacoes' %}"
+                   aria-current="page">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <span>Minhas Solicitações</span>
+                </a>
+
+                <span class="profile-menu-item unavailable"
+                      aria-disabled="true"
+                      title="Funcionalidade indisponível">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <span>Alterar Senha</span>
+                </span>
+
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sair</span>
+                </a>
+
+            </nav>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL -->
+        <main class="my-items-main">
+
+            <section class="my-items-card" aria-labelledby="solicitacoesHeading">
+
+                <!-- CABEÇALHO -->
+                <header class="my-items-card-heading">
+                    <span class="my-items-heading-icon">
+                        <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    </span>
+
+                    <div>
+                        <h2 id="solicitacoesHeading">Minhas Solicitações</h2>
+                        <p>Confira o andamento das solicitações realizadas por você.</p>
+                    </div>
+                </header>
+
+                {% if solicitacoes %}
+
+                    <!-- RESUMO -->
+                    <div class="summary-grid" aria-label="Resumo das solicitações">
+
+                        <div class="summary-card total">
+                            <div class="summary-icon">
+                                <i class="bi bi-clipboard-check"></i>
+                            </div>
+
+                            <div>
+                                <strong>{{ solicitacoes|length }}</strong>
+                                <span>Total de solicitações</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-card review">
+                            <div class="summary-icon">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+
+                            <div>
+                                <strong>
+                                    {{ solicitacoes|length }}
+                                </strong>
+                                <span>Solicitações enviadas</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- LISTA -->
+                    <div class="table-card">
+
+                        <div class="table-wrapper">
+
+                            <table class="items-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Item</th>
+                                        <th>Data</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    {% for solicitacao in solicitacoes %}
+
+                                        <tr class="data-row">
+
+                                            <!-- ID -->
+                                            <td>
+                                                #{{ solicitacao.id|stringformat:"04d" }}
+                                            </td>
+
+                                            <!-- ITEM -->
+                                            <td>
+                                                <div class="item-cell">
+
+                                                    {% if solicitacao.item.imagem %}
+                                                        <div class="item-thumb item-thumb-image">
+                                                            <img
+                                                                src="{{ solicitacao.item.imagem.url }}"
+                                                                alt="Imagem de {{ solicitacao.item.nome }}"
+                                                            >
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="item-thumb">
+                                                            {{ solicitacao.item.nome|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <div class="item-info">
+                                                        <span>
+                                                            {{ solicitacao.item.nome }}
+                                                        </span>
+
+                                                        <small>
+                                                            {{ solicitacao.item.local }}
+                                                        </small>
+                                                    </div>
+
+                                                </div>
+                                            </td>
+
+                                            <!-- DATA -->
+                                            <td>
+                                                {{ solicitacao.data_solicitacao|date:"d/m/Y" }}
+                                            </td>
+
+                                            <!-- STATUS -->
+                                            <td>
+
+                                                {% if solicitacao.status == 'aprovada' %}
+
+                                                    <span class="status-badge status-encontrado">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        Aprovada
+                                                    </span>
+
+                                                {% elif solicitacao.status == 'recusada' %}
+
+                                                    <span class="status-badge status-perdido">
+                                                        <i class="bi bi-x-circle"></i>
+                                                        Recusada
+                                                    </span>
+
+                                                {% else %}
+
+                                                    <span class="status-badge status-analise">
+                                                        <i class="bi bi-hourglass-split"></i>
+                                                        Em análise
+                                                    </span>
+
+                                                {% endif %}
+
+                                            </td>
+
+                                            <!-- AÇÕES -->
+                                            <td>
+                                                <div class="action-group">
+
+                                                    <a
+                                                        href="{% url 'detalhar_solicitacao' solicitacao.id %}"
+                                                        class="action-btn view-btn"
+                                                        aria-label="Visualizar solicitação {{ solicitacao.id }}"
+                                                        title="Visualizar solicitação"
+                                                    >
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+
+                                                </div>
+                                            </td>
+
+                                        </tr>
+
+                                    {% endfor %}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <!-- ESTADO VAZIO -->
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            <i class="bi bi-clipboard-x"></i>
+                        </div>
+
+                        <h3>Você ainda não possui solicitações.</h3>
+
+                        <p>
+                            Quando você solicitar um item encontrado,
+                            sua solicitação aparecerá aqui.
+                        </p>
+
+                        <a
+                            href="{% url 'catalogo' %}"
+                            class="btn btn-primary"
+                        >
+                            <i class="bi bi-search"></i>
+                            Procurar itens
+                        </a>
+
+                    </div>
+
+                {% endif %}
+
+            </section>
+
+        </main>
+
+    </div>
+
+</section>
+
+<!-- TOAST -->
+<div
+    id="toastContainer"
+    class="toast-container"
+    aria-live="polite"
+    aria-atomic="true">
+</div>
+
+{% endblock %}

@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Perfil
+from .models import Perfil, Item, Solicitacao
 
 
 class ProfilePhotoUploadTests(TestCase):
@@ -58,6 +58,59 @@ class ProfilePhotoUploadTests(TestCase):
 		response = self.client.post(reverse('perfil'), {'foto': self._jpeg_upload()})
 
 		self.assertEqual(response.status_code, 302)
+
+
+class SolicitationFlowTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(username='12345', password='test-password')
+		self.client.force_login(self.user)
+		self.item = Item.objects.create(
+			nome='Celular',
+			descricao='Celular quebrado',
+			local='Sala A107',
+			data_registro='2026-10-08',
+			status='perdi',
+			usuario=self.user,
+		)
+
+	def _image_upload(self, name='comprovante.jpg'):
+		content = BytesIO()
+		Image.new('RGB', (2, 2), color='blue').save(content, format='JPEG')
+		return SimpleUploadedFile(name, content.getvalue(), content_type='image/jpeg')
+
+	def test_user_can_view_their_solicitations_page(self):
+		response = self.client.get(reverse('minhas_solicitacoes'))
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Minhas Solicitações')
+		self.assertContains(response, 'Acompanhe as solicitações que você enviou para recuperar os itens.')
+
+	def test_duplicate_solicitation_is_detected_for_the_same_item(self):
+		Solicitacao.objects.create(
+			item=self.item,
+			solicitante=self.user,
+			foto_comprovante=self._image_upload(),
+			status='em_analise',
+		)
+
+		response = self.client.get(
+			reverse('verificar_solicitacao_item', args=[self.item.id]),
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()['exists'])
+		self.assertEqual(response.json()['message'], 'Você já possui uma solicitação para este item.')
+
+	def test_valid_solicitation_submission_creates_request_and_sets_initial_status_to_analysis(self):
+		response = self.client.post(
+			reverse('confirmar_solicitacao', args=[self.item.id]),
+			{'foto_comprovante': self._image_upload()},
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()['success'])
+		self.assertEqual(Solicitacao.objects.filter(item=self.item, solicitante=self.user).count(), 1)
+		self.assertEqual(Solicitacao.objects.get(item=self.item, solicitante=self.user).status, 'em_analise')
 
 
 class EditProfileTests(TestCase):

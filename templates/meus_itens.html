@@ -25,10 +25,10 @@
                     <i class="bi bi-box-seam" aria-hidden="true"></i>
                     <span>Meus Itens</span>
                 </a>
-                <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
+                <a class="profile-menu-item {% if request.resolver_match.url_name == 'minhas_solicitacoes' or request.resolver_match.url_name == 'detalhar_solicitacao' %}active{% endif %}" href="{% url 'minhas_solicitacoes' %}">
                     <i class="bi bi-clipboard-check" aria-hidden="true"></i>
                     <span>Minhas Solicitações</span>
-                </span>
+                </a>
                 <span class="profile-menu-item unavailable" aria-disabled="true" title="Funcionalidade indisponível">
                     <i class="bi bi-lock" aria-hidden="true"></i>
                     <span>Alterar Senha</span>
