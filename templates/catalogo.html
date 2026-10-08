@@ -1,0 +1,69 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}Catálogo - IFound{% endblock %}
+
+{% block content %}
+<main class="main-container">
+    <section class="recent-items-section">
+        <div class="section-header">
+            <div class="header-wrapper">
+                <h1 class="section-title">
+                    <span class="section-icon">📦</span>
+                    Catálogo de itens
+                </h1>
+                <p class="section-description">
+                    Confira os itens cadastrados no sistema.
+                </p>
+            </div>
+        </div>
+
+        <div class="items-grid" aria-live="polite" aria-label="Catálogo de itens">
+            {% for item in itens %}
+                <article class="item-card">
+                    <div class="item-card-image-wrapper">
+                        {% if item.imagem %}
+                            <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="item-card-image">
+                        {% else %}
+                            <div class="item-card-image-placeholder">
+                                <i class="bi bi-image"></i>
+                                <span>Sem imagem</span>
+                            </div>
+                        {% endif %}
+                        <div class="item-card-status">
+                            <span class="status-badge {% if item.status == 'perdi' %}status-perdi{% elif item.status == 'achei' %}status-achei{% else %}status-analise{% endif %}">
+                                {% if item.status == 'perdi' %}Perdido{% elif item.status == 'achei' %}Encontrado{% else %}Em análise{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="item-card-content">
+                        <h2 class="item-card-title">{{ item.nome }}</h2>
+                        {% if item.local %}
+                            <div class="item-card-meta">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span>{{ item.local }}</span>
+                            </div>
+                        {% endif %}
+                        {% if item.data_registro %}
+                            <div class="item-card-meta">
+                                <i class="bi bi-calendar3"></i>
+                                <span>{{ item.data_registro|date:'d/m/Y' }}</span>
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'detalhar_item' item.id %}" class="item-card-button">
+                            <span>Detalhar</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">😔</div>
+                    <h3>Nenhum item cadastrado</h3>
+                    <p>Os itens cadastrados aparecerão aqui.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}
