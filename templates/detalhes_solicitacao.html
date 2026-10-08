@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Solicitação - Found{% endblock %}
+
+{% block content %}
+<section class="my-items-page">
+
+    <!-- HERO -->
+    <section
+        class="my-items-hero"
+        style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');"
+    >
+        <div class="my-items-hero-overlay"></div>
+
+        <div class="my-items-hero-content">
+            <p class="my-items-hero-eyebrow">Painel do usuário</p>
+            <h1>Detalhes da Solicitação</h1>
+            <p>Confira as informações da sua solicitação.</p>
+        </div>
+    </section>
+
+    <!-- CONTEÚDO -->
+    <div class="my-items-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="profile-sidebar my-items-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+
+                <a class="profile-menu-item" href="{% url 'perfil' %}">
+                    <i class="bi bi-person-lines-fill"></i>
+                    <span>Informações</span>
+                </a>
+
+                <a class="profile-menu-item" href="{% url 'meus_itens' %}">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Meus Itens</span>
+                </a>
+
+                <a
+                    class="profile-menu-item active"
+                    href="{% url 'minhas_solicitacoes' %}"
+                    aria-current="page"
+                >
+                    <i class="bi bi-clipboard-check"></i>
+                    <span>Minhas Solicitações</span>
+                </a>
+
+                <span
+                    class="profile-menu-item unavailable"
+                    aria-disabled="true"
+                    title="Funcionalidade indisponível"
+                >
+                    <i class="bi bi-lock"></i>
+                    <span>Alterar Senha</span>
+                </span>
+
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sair</span>
+                </a>
+
+            </nav>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL -->
+        <main class="my-items-main">
+
+            <section class="my-items-card">
+
+                <!-- CABEÇALHO -->
+                <header class="my-items-card-heading">
+                    <span class="my-items-heading-icon">
+                        <i class="bi bi-clipboard-check"></i>
+                    </span>
+
+                    <div>
+                        <h2>Detalhes da Solicitação</h2>
+                        <p>
+                            Informações sobre sua solicitação para este item.
+                        </p>
+                    </div>
+                </header>
+
+                <!-- INFORMAÇÕES -->
+                <div class="request-details">
+
+                    <!-- ITEM -->
+                    <div class="request-detail-card">
+
+                        <div class="request-detail-icon">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+
+                        <div class="request-detail-content">
+                            <span class="request-detail-label">Item</span>
+                            <strong>
+                                {{ solicitacao.item.nome }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="request-detail-card">
+
+                        <div class="request-detail-icon">
+                            <i class="bi bi-activity"></i>
+                        </div>
+
+                        <div class="request-detail-content">
+                            <span class="request-detail-label">Status</span>
+
+                            {% if solicitacao.status == 'aprovada' %}
+
+                                <span class="status-badge status-encontrado">
+                                    <i class="bi bi-check-circle"></i>
+                                    Aprovada
+                                </span>
+
+                            {% elif solicitacao.status == 'recusada' %}
+
+                                <span class="status-badge status-perdido">
+                                    <i class="bi bi-x-circle"></i>
+                                    Recusada
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-analise">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    Em análise
+                                </span>
+
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                    <!-- DATA -->
+                    <div class="request-detail-card">
+
+                        <div class="request-detail-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+
+                        <div class="request-detail-content">
+                            <span class="request-detail-label">
+                                Data da solicitação
+                            </span>
+
+                            <strong>
+                                {{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <!-- LOCAL -->
+                    <div class="request-detail-card">
+
+                        <div class="request-detail-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+
+                        <div class="request-detail-content">
+                            <span class="request-detail-label">Local do item</span>
+
+                            <strong>
+                                {{ solicitacao.item.local }}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- DESCRIÇÃO DO ITEM -->
+                <div class="request-section">
+
+                    <div class="request-section-heading">
+                        <i class="bi bi-card-text"></i>
+                        <h3>Descrição do item</h3>
+                    </div>
+
+                    <div class="request-description">
+                        {{ solicitacao.item.descricao }}
+                    </div>
+
+                </div>
+
+                <!-- COMPROVANTE -->
+                <div class="request-section">
+
+                    <div class="request-section-heading">
+                        <i class="bi bi-image"></i>
+                        <h3>Comprovante enviado</h3>
+                    </div>
+
+                    {% if solicitacao.foto_comprovante %}
+
+                        <div class="request-proof">
+                            <img
+                                src="{{ solicitacao.foto_comprovante.url }}"
+                                alt="Comprovante enviado na solicitação"
+                            >
+                        </div>
+
+                    {% else %}
+
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="bi bi-image"></i>
+                            </div>
+
+                            <h3>Nenhum comprovante disponível.</h3>
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- BOTÕES -->
+                <div class="request-actions">
+
+                    <a
+                        href="{% url 'minhas_solicitacoes' %}"
+                        class="btn btn-secondary"
+                    >
+                        <i class="bi bi-arrow-left"></i>
+                        Voltar para minhas solicitações
+                    </a>
+
+                    <a
+                        href="{% url 'detalhar_item' solicitacao.item.id %}"
+                        class="btn btn-primary"
+                    >
+                        <i class="bi bi-box-seam"></i>
+                        Ver item
+                    </a>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</section>
+{% endblock %}
