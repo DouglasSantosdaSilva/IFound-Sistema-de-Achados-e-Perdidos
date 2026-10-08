@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmar solicitaÃ§Ã£o - IFound{% endblock %}
+
+{% block content %}
+<div class="details-page">
+    <div class="details-header">
+        <a href="{% url 'detalhar_item' item.id %}" class="back-button">
+            <i class="bi bi-arrow-left"></i>
+            <span>Voltar para o item</span>
+        </a>
+    </div>
+
+    <div class="details-container">
+        <div class="details-card">
+            <div class="details-card-layout">
+                <div class="details-image-section">
+                    <div class="details-image-wrapper">
+                        {% if item.imagem %}
+                            <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="details-image">
+                        {% else %}
+                            <div class="details-image-placeholder">
+                                <i class="bi bi-image"></i>
+                                <span>Sem imagem disponÃ­vel</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="details-image-status">
+                        <span class="status-badge {% if item.status == 'perdi' %}status-perdi{% else %}status-achei{% endif %}">
+                            {% if item.status == 'perdi' %}Perdido{% else %}Encontrado{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="details-info-section">
+                    <h1 class="details-title">{{ item.nome }}</h1>
+                    <div class="details-section">
+                        <h2 class="details-section-label">Confirme que este item Ã© seu</h2>
+                        <p class="details-section-content">
+                            Para solicitar este item, envie uma foto de comprovaÃ§Ã£o que ajude a confirmar que ele pertence a vocÃª.
+                        </p>
+                    </div>
+                    <div class="details-meta-row">
+                        <div class="details-meta-item">
+                            <div class="details-meta-content">
+                                <span class="details-meta-label">Local</span>
+                                <p class="details-meta-value">{{ item.local|default:'NÃ£o informado' }}</p>
+                            </div>
+                        </div>
+                        <div class="details-meta-item">
+                            <div class="details-meta-content">
+                                <span class="details-meta-label">Data</span>
+                                <p class="details-meta-value">{{ item.data_registro|date:'d/m/Y'|default:'NÃ£o informado' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="details-card details-card-claim">
+            <div class="details-card-header">
+                <i class="bi bi-check-circle"></i>
+                <h2>Enviar foto de comprovaÃ§Ã£o</h2>
+            </div>
+            <p class="details-claim-description">
+                Selecione manualmente uma imagem JPG, JPEG, PNG ou WEBP para enviar sua solicitaÃ§Ã£o.
+            </p>
+
+            <form method="POST" enctype="multipart/form-data" class="claim-form" id="claimForm" action="{% url 'confirmar_solicitacao' item.id %}">
+                {% csrf_token %}
+                <div class="claim-form-group">
+                    <label for="fotoComprovante" class="claim-form-label">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span id="selectedFileName">Escolher foto de comprovaÃ§Ã£o</span>
+                    </label>
+                    <input type="file" id="fotoComprovante" name="foto_comprovante" accept=".jpg,.jpeg,.png,.webp" required class="claim-form-input">
+                    <p class="claim-form-hint">Formatos aceitos: JPG, JPEG, PNG e WEBP.</p>
+                </div>
+                <div class="claim-form-actions">
+                    <button type="submit" class="claim-submit-btn">
+                        <i class="bi bi-check-lg"></i>
+                        <span>Confirmar solicitaÃ§Ã£o</span>
+                    </button>
+                    <a href="{% url 'detalhar_item' item.id %}" class="btn btn-secondary">
+                        <span>Cancelar</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+<script src="{% static 'js/confirmar_solicitacao.js' %}"></script>
+{% endblock %}

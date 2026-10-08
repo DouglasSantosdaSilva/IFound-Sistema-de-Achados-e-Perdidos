@@ -90,10 +90,10 @@
 
                         <!-- ACTION BUTTON -->
                         <div class="details-actions">
-                            <button type="button" id="requestItemButton" class="details-action-btn" data-item-id="{{ item.id }}">
+                            <a href="{% url 'confirmar_solicitacao' item.id %}" class="details-action-btn">
                                 <i class="bi bi-hand-thumbs-up"></i>
                                 <span>Solicitar este item</span>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -155,59 +155,10 @@
                 </div>
             </div>
 
-            <!-- CLAIM FORM CARD -->
-            <div id="claimFormContainer" class="details-card details-card-claim">
-                <div class="details-card-header">
-                    <i class="bi bi-check-circle"></i>
-                    <h2>Confirme que este item é seu</h2>
-                </div>
-
-                <p class="details-claim-description">
-                    Para reivindicar este item, você precisa enviar uma foto de comprovação que o identifique como responsável.
-                </p>
-
-                <form method="POST" enctype="multipart/form-data" class="claim-form" id="claimForm" action="{% url 'confirmar_solicitacao' item.id %}">
-                    {% csrf_token %}
-
-                    <div class="claim-form-group">
-                        <label for="fotoComprovante" class="claim-form-label">
-                            <i class="bi bi-cloud-upload"></i>
-                            <span id="selectedFileName">Enviar foto de comprovação</span>
-                        </label>
-                        <input 
-                            type="file" 
-                            id="fotoComprovante"
-                            name="foto_comprovante" 
-                            accept="image/*" 
-                            required
-                            class="claim-form-input"
-                        >
-                        <p class="claim-form-hint">Formatos aceitos: JPG, PNG, WEBP (máx. 5MB)</p>
-                    </div>
-
-                    <div class="claim-form-actions">
-                        <button type="submit" class="claim-submit-btn">
-                            <i class="bi bi-check-lg"></i>
-                            <span>Confirmar solicitação</span>
-                        </button>
-                        <button type="reset" class="claim-cancel-btn">
-                            <span>Cancelar</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
 
-    {% if messages %}
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                {% for message in messages %}
-                    console.log('{{ message.tags }}', '{{ message }}');
-                {% endfor %}
-            });
-        </script>
-    {% endif %}
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script src="{% static 'js/details.js' %}"></script>
 {% endblock %}

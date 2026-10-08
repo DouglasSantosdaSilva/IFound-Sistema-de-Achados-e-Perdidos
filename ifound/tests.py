@@ -62,6 +62,12 @@ class ProfilePhotoUploadTests(TestCase):
 
 class SolicitationFlowTests(TestCase):
 	def setUp(self):
+		self.media_directory = tempfile.TemporaryDirectory()
+		self.addCleanup(self.media_directory.cleanup)
+		media_settings = override_settings(MEDIA_ROOT=self.media_directory.name)
+		media_settings.enable()
+		self.addCleanup(media_settings.disable)
+
 		self.user = User.objects.create_user(username='12345', password='test-password')
 		self.client.force_login(self.user)
 		self.item = Item.objects.create(
@@ -100,6 +106,26 @@ class SolicitationFlowTests(TestCase):
 		self.assertTrue(response.json()['exists'])
 		self.assertEqual(response.json()['message'], 'Você já possui uma solicitação para este item.')
 
+	def test_confirmation_page_renders_item_and_cancel_destination(self):
+		response = self.client.get(reverse('confirmar_solicitacao', args=[self.item.id]))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, 'confirmar_solicitacao.html')
+		self.assertContains(response, self.item.nome)
+		self.assertContains(response, self.item.local)
+		self.assertContains(response, 'name="foto_comprovante"')
+		self.assertContains(response, reverse('detalhar_item', args=[self.item.id]))
+
+	def test_item_verification_points_to_confirmation_when_request_is_new(self):
+		response = self.client.get(reverse('verificar_solicitacao_item', args=[self.item.id]))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertFalse(response.json()['exists'])
+		self.assertEqual(
+			response.json()['redirect_url'],
+			reverse('confirmar_solicitacao', args=[self.item.id]),
+		)
+
 	def test_valid_solicitation_submission_creates_request_and_sets_initial_status_to_analysis(self):
 		response = self.client.post(
 			reverse('confirmar_solicitacao', args=[self.item.id]),
@@ -111,6 +137,12 @@ class SolicitationFlowTests(TestCase):
 		self.assertTrue(response.json()['success'])
 		self.assertEqual(Solicitacao.objects.filter(item=self.item, solicitante=self.user).count(), 1)
 		self.assertEqual(Solicitacao.objects.get(item=self.item, solicitante=self.user).status, 'em_analise')
+
+		list_response = self.client.get(reverse('minhas_solicitacoes'))
+		solicitacao = Solicitacao.objects.get(item=self.item, solicitante=self.user)
+		self.assertContains(list_response, self.item.nome)
+		self.assertContains(list_response, self.item.local)
+		self.assertContains(list_response, reverse('detalhar_solicitacao', args=[solicitacao.id]))
 
 
 class EditProfileTests(TestCase):
