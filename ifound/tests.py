@@ -101,6 +101,42 @@ class EditProfileTests(TestCase):
 		self.assertEqual(self.profile.turma, 'Nova Turma')
 		self.assertContains(self.client.get(reverse('perfil')), 'Dados atualizados com sucesso!')
 
+	def test_ajax_post_returns_updated_profile_as_json(self):
+		response = self.client.post(
+			reverse('editar_perfil'),
+			{
+				'nome_completo': 'Nome via AJAX',
+				'email': 'ajax@example.com',
+				'curso': 'Curso AJAX',
+				'turma': 'Turma AJAX',
+			},
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()['success'])
+		self.assertEqual(response.json()['profile']['nome_completo'], 'Nome via AJAX')
+		self.user.refresh_from_db()
+		self.profile.refresh_from_db()
+		self.assertEqual(self.user.email, 'ajax@example.com')
+		self.assertEqual(self.profile.curso, 'Curso AJAX')
+
+	def test_ajax_validation_errors_are_returned_as_json(self):
+		response = self.client.post(
+			reverse('editar_perfil'),
+			{
+				'nome_completo': '',
+				'email': 'invalido',
+				'curso': '',
+				'turma': '',
+			},
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertFalse(response.json()['success'])
+		self.assertIn('Informe seu nome completo.', response.json()['errors'])
+
 	def test_invalid_fields_are_reported_without_saving(self):
 		response = self.client.post(reverse('editar_perfil'), {
 			'nome_completo': '',

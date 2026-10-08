@@ -42,7 +42,10 @@
             <section class="profile-information-card profile-edit-card">
                 <div class="profile-section-heading">
                     <span class="profile-heading-icon"><i class="bi bi-person-vcard" aria-hidden="true"></i></span>
-                    <h2>Editar dados do perfil</h2>
+                    <div>
+                        <h2>Editar dados do perfil</h2>
+                        <p class="profile-edit-description">Atualize suas informações pessoais abaixo.</p>
+                    </div>
                 </div>
 
                 {% if form_errors %}
@@ -53,37 +56,256 @@
                     </div>
                 {% endif %}
 
-                <form method="post" class="profile-edit-form">
+                <div id="profileEditFeedback" class="profile-notice" role="alert" hidden></div>
+
+                <form method="post" class="profile-edit-form" id="profileEditForm">
                     {% csrf_token %}
                     <div class="profile-edit-fields">
                         <div class="profile-form-field">
                             <label for="id_nome_completo">Nome completo</label>
-                            <input id="id_nome_completo" name="nome_completo" type="text" maxlength="255" value="{{ form_data.nome_completo }}" required>
+                            <input class="profile-edit-input" id="id_nome_completo" name="nome_completo" type="text" maxlength="255" value="{{ form_data.nome_completo }}" required>
+                            <small class="profile-field-error" data-field-error="nome_completo" hidden></small>
                         </div>
                         <div class="profile-form-field">
                             <label for="id_email">E-mail</label>
-                            <input id="id_email" name="email" type="email" maxlength="254" value="{{ form_data.email }}" required>
+                            <input class="profile-edit-input" id="id_email" name="email" type="email" maxlength="254" value="{{ form_data.email }}" required>
+                            <small class="profile-field-error" data-field-error="email" hidden></small>
                         </div>
                         <div class="profile-form-field">
                             <label for="id_curso">Curso</label>
-                            <input id="id_curso" name="curso" type="text" maxlength="255" value="{{ form_data.curso }}" required>
+                            <input class="profile-edit-input" id="id_curso" name="curso" type="text" maxlength="255" value="{{ form_data.curso }}" required>
+                            <small class="profile-field-error" data-field-error="curso" hidden></small>
                         </div>
                         <div class="profile-form-field">
                             <label for="id_turma">Turma</label>
-                            <input id="id_turma" name="turma" type="text" maxlength="100" value="{{ form_data.turma }}" required>
+                            <input class="profile-edit-input" id="id_turma" name="turma" type="text" maxlength="100" value="{{ form_data.turma }}" required>
+                            <small class="profile-field-error" data-field-error="turma" hidden></small>
                         </div>
                     </div>
 
                     <div class="profile-information-actions">
                         <a href="{% url 'perfil' %}" class="profile-cancel-button">Cancelar</a>
-                        <button type="submit" class="profile-edit-button">
-                            <i class="bi bi-check2" aria-hidden="true"></i>
-                            <span>Salvar alterações</span>
+                        <button type="submit" class="profile-edit-button" id="profileSaveButton">
+                            <span class="profile-spinner" id="profileSaveSpinner" aria-hidden="true" hidden></span>
+                            <i class="bi bi-check2" id="profileSaveIcon" aria-hidden="true"></i>
+                            <span id="profileSaveLabel">Salvar alterações</span>
                         </button>
                     </div>
                 </form>
+
+                <section class="profile-saved-summary" id="profileSavedSummary" aria-live="polite" hidden>
+                    <div class="profile-section-heading">
+                        <span class="profile-heading-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+                        <h2>Dados atualizados</h2>
+                    </div>
+                    <div class="profile-information-grid">
+                        <div class="profile-data-field">
+                            <span class="profile-data-label">Nome completo</span>
+                            <p data-profile-value="nome_completo"></p>
+                        </div>
+                        <div class="profile-data-field">
+                            <span class="profile-data-label">E-mail</span>
+                            <p data-profile-value="email"></p>
+                        </div>
+                        <div class="profile-data-field">
+                            <span class="profile-data-label">Curso</span>
+                            <p data-profile-value="curso"></p>
+                        </div>
+                        <div class="profile-data-field">
+                            <span class="profile-data-label">Turma</span>
+                            <p data-profile-value="turma"></p>
+                        </div>
+                    </div>
+                    <div class="profile-information-actions">
+                        <a href="{% url 'perfil' %}" class="profile-cancel-button">Voltar ao perfil</a>
+                    </div>
+                </section>
             </section>
         </main>
     </div>
 </div>
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+    (() => {
+        const form = document.getElementById('profileEditForm');
+        const feedback = document.getElementById('profileEditFeedback');
+        const saveButton = document.getElementById('profileSaveButton');
+        const saveSpinner = document.getElementById('profileSaveSpinner');
+        const saveIcon = document.getElementById('profileSaveIcon');
+        const saveLabel = document.getElementById('profileSaveLabel');
+        const savedSummary = document.getElementById('profileSavedSummary');
+        const toastContainer = document.getElementById('toast-container');
+
+        function showToast({ title, message, type = 'info' }) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const content = document.createElement('div');
+            content.className = 'toast-header';
+            const icon = document.createElement('div');
+            icon.className = `toast-icon ${type}`;
+            const iconElement = document.createElement('i');
+            const iconClass = type === 'success'
+                ? 'bi-check-circle-fill'
+                : type === 'error' ? 'bi-x-circle-fill' : 'bi-info-circle-fill';
+            iconElement.className = `bi ${iconClass}`;
+            iconElement.setAttribute('aria-hidden', 'true');
+            icon.append(iconElement);
+
+            const text = document.createElement('div');
+            text.className = 'toast-text';
+            const heading = document.createElement('strong');
+            heading.textContent = title;
+            const detail = document.createElement('span');
+            detail.textContent = message;
+            text.append(heading, detail);
+
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'toast-close';
+            closeButton.setAttribute('aria-label', 'Fechar notificação');
+            closeButton.textContent = '×';
+            content.append(icon, text, closeButton);
+            toast.append(content);
+
+            const dismiss = () => {
+                toast.classList.add('toast-closing');
+                window.setTimeout(() => toast.remove(), 220);
+            };
+            closeButton.addEventListener('click', dismiss);
+            toastContainer.append(toast);
+            window.setTimeout(dismiss, 3400);
+        }
+
+        function clearFieldErrors() {
+            form.querySelectorAll('[aria-invalid="true"]').forEach((input) => {
+                input.removeAttribute('aria-invalid');
+            });
+            form.querySelectorAll('[data-field-error]').forEach((error) => {
+                error.textContent = '';
+                error.hidden = true;
+            });
+        }
+
+        function fieldForError(error) {
+            const message = error.toLocaleLowerCase('pt-BR');
+            if (message.includes('nome completo')) return 'nome_completo';
+            if (message.includes('e-mail') || message.includes('email')) return 'email';
+            if (message.includes('curso')) return 'curso';
+            if (message.includes('turma')) return 'turma';
+            return null;
+        }
+
+        function renderErrors(errors) {
+            clearFieldErrors();
+            const errorList = document.createElement('ul');
+            errors.forEach((error) => {
+                const item = document.createElement('li');
+                item.textContent = error;
+                errorList.append(item);
+
+                const fieldName = fieldForError(error);
+                if (fieldName) {
+                    const input = form.elements.namedItem(fieldName);
+                    const fieldError = form.querySelector(`[data-field-error="${fieldName}"]`);
+                    input?.setAttribute('aria-invalid', 'true');
+                    if (fieldError) {
+                        fieldError.textContent = error;
+                        fieldError.hidden = false;
+                    }
+                }
+            });
+            feedback.classList.add('profile-notice-error');
+            feedback.replaceChildren(errorList);
+            feedback.hidden = false;
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            showToast({
+                title: 'Não foi possível salvar',
+                message: errors[0] || 'Confira os dados e tente novamente.',
+                type: 'error'
+            });
+        }
+
+        form.addEventListener('invalid', (event) => {
+            const input = event.target;
+            if (!(input instanceof HTMLInputElement)) return;
+            input.setAttribute('aria-invalid', 'true');
+            const fieldError = form.querySelector(`[data-field-error="${input.name}"]`);
+            if (fieldError) {
+                fieldError.textContent = input.validationMessage;
+                fieldError.hidden = false;
+            }
+        }, true);
+
+        form.addEventListener('input', (event) => {
+            const input = event.target;
+            if (!(input instanceof HTMLInputElement)) return;
+            input.removeAttribute('aria-invalid');
+            const fieldError = form.querySelector(`[data-field-error="${input.name}"]`);
+            if (fieldError) {
+                fieldError.textContent = '';
+                fieldError.hidden = true;
+            }
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            feedback.hidden = true;
+            feedback.replaceChildren();
+            clearFieldErrors();
+            saveButton.disabled = true;
+            saveButton.setAttribute('aria-busy', 'true');
+            saveSpinner.hidden = false;
+            saveIcon.hidden = true;
+            saveLabel.textContent = 'Salvando...';
+
+            try {
+                const response = await fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    headers: getCsrfHeaders(),
+                    body: new FormData(form)
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    renderErrors(result.errors || ['Não foi possível salvar os dados. Tente novamente.']);
+                    return;
+                }
+
+                Object.entries(result.profile).forEach(([field, value]) => {
+                    const input = form.elements.namedItem(field);
+                    if (input) input.value = value;
+                    const summaryValue = savedSummary.querySelector(`[data-profile-value="${field}"]`);
+                    if (summaryValue) summaryValue.textContent = value;
+                });
+
+                feedback.classList.remove('profile-notice-error');
+                feedback.textContent = result.message;
+                feedback.hidden = false;
+                savedSummary.hidden = false;
+                showToast({
+                    title: 'Perfil atualizado',
+                    message: result.message,
+                    type: 'success'
+                });
+            } catch {
+                feedback.classList.add('profile-notice-error');
+                feedback.textContent = 'Não foi possível salvar os dados. Verifique sua conexão e tente novamente.';
+                feedback.hidden = false;
+                showToast({
+                    title: 'Erro ao salvar',
+                    message: 'Verifique sua conexão e tente novamente.',
+                    type: 'error'
+                });
+            } finally {
+                saveButton.disabled = false;
+                saveButton.removeAttribute('aria-busy');
+                saveSpinner.hidden = true;
+                saveIcon.hidden = false;
+                saveLabel.textContent = 'Salvar alterações';
+            }
+        });
+    })();
+</script>
 {% endblock %}

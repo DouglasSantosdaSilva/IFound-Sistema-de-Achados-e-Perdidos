@@ -236,6 +236,7 @@ def perfil_view(request):
 @login_required
 def editar_perfil(request):
     perfil, _ = Perfil.objects.get_or_create(user=request.user)
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     form_data = {
         'nome_completo': perfil.nome_completo or '',
         'email': request.user.email or '',
@@ -272,6 +273,12 @@ def editar_perfil(request):
                 if email_em_uso:
                     form_errors.append('Este e-mail já está sendo utilizado por outra conta.')
 
+        if form_errors and is_ajax:
+            return JsonResponse({
+                'success': False,
+                'errors': form_errors,
+            }, status=400)
+
         if not form_errors:
             with transaction.atomic():
                 request.user.email = form_data['email']
@@ -280,6 +287,13 @@ def editar_perfil(request):
                 perfil.curso = form_data['curso']
                 perfil.turma = form_data['turma']
                 perfil.save(update_fields=['nome_completo', 'curso', 'turma'])
+
+            if is_ajax:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Dados atualizados com sucesso!',
+                    'profile': form_data,
+                })
 
             messages.success(request, 'Dados atualizados com sucesso!')
             return redirect('perfil')
