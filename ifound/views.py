@@ -12,11 +12,13 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.utils.dateparse import parse_date
+from django.utils import timezone
 from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse
 
 from .models import Perfil, Item, Solicitacao
+from .prazos import calcular_prazo_retirada
 
 
 def _status_label(status_value):
@@ -344,7 +346,27 @@ def admin_dashboard(request):
     ):
         return HttpResponseForbidden('Você não tem permissão para acessar esta página.')
 
-    return render(request, 'admin_dashboard.html')
+    itens_encontrados = list(
+        Item.objects.filter(status='achei').only('status', 'data_encontrado')
+    )
+    itens_perdidos = Item.objects.filter(status='perdi').count()
+    solicitacoes_em_analise = Solicitacao.objects.filter(status='em_analise').count()
+
+    hoje = timezone.localdate()
+    classificacoes_prazo = [
+        calcular_prazo_retirada(item, hoje=hoje).classificacao
+        for item in itens_encontrados
+    ]
+
+    indicadores = {
+        'itens_encontrados': len(itens_encontrados),
+        'itens_perdidos': itens_perdidos,
+        'proximos_vencimento': classificacoes_prazo.count('proximo_vencimento'),
+        'itens_vencidos': classificacoes_prazo.count('vencido'),
+        'solicitacoes_em_analise': solicitacoes_em_analise,
+    }
+
+    return render(request, 'admin_dashboard.html', {'indicadores': indicadores})
 
 
 @login_required

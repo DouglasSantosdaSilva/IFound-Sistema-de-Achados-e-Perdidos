@@ -55,7 +55,7 @@
                 <h1>Dashboard Administrativo</h1>
                 <p class="if-admin-page-description">Visão geral dos itens, solicitações e prazos de retirada.</p>
             </div>
-            <span class="if-admin-preview-badge"><i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i> Dados ainda não conectados</span>
+            <span class="if-admin-preview-badge"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Indicadores do sistema</span>
         </header>
 
         <section class="if-admin-section" id="adminIndicators" aria-labelledby="adminIndicatorsTitle">
@@ -64,33 +64,42 @@
                     <p class="if-admin-section-kicker">RESUMO DO SISTEMA</p>
                     <h2 id="adminIndicatorsTitle">Indicadores</h2>
                 </div>
-                <span class="if-admin-section-caption">Estrutura reservada para dados reais</span>
+                <span class="if-admin-section-caption">Contagens atualizadas ao carregar o painel</span>
             </div>
 
             <div class="if-admin-metrics-grid">
                 <article class="if-admin-metric-card">
                     <span class="if-admin-metric-icon is-blue"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                    <span class="if-admin-metric-label">Itens cadastrados</span>
-                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
-                    <span class="if-admin-metric-note">Aguardando integração</span>
+                    <span class="if-admin-metric-label">Itens encontrados e perdidos</span>
+                    <div class="if-admin-metric-pair">
+                        <div>
+                            <strong class="if-admin-metric-value">{{ indicadores.itens_encontrados }}</strong>
+                            <span>Encontrados</span>
+                        </div>
+                        <div>
+                            <strong class="if-admin-metric-value">{{ indicadores.itens_perdidos }}</strong>
+                            <span>Perdidos</span>
+                        </div>
+                    </div>
+                    <span class="if-admin-metric-note">Contagem por status do item</span>
                 </article>
                 <article class="if-admin-metric-card">
                     <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
                     <span class="if-admin-metric-label">Solicitações em análise</span>
-                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
-                    <span class="if-admin-metric-note">Aguardando integração</span>
+                    <strong class="if-admin-metric-value">{{ indicadores.solicitacoes_em_analise }}</strong>
+                    <span class="if-admin-metric-note">Solicitações com status em análise</span>
                 </article>
                 <article class="if-admin-metric-card">
-                    <span class="if-admin-metric-icon is-green"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i></span>
-                    <span class="if-admin-metric-label">Aguardando retirada</span>
-                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
-                    <span class="if-admin-metric-note">Aguardando integração</span>
+                    <span class="if-admin-metric-icon is-amber"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-label">Itens vencidos</span>
+                    <strong class="if-admin-metric-value">{{ indicadores.itens_vencidos }}</strong>
+                    <span class="if-admin-metric-note">Prazo de retirada ultrapassado</span>
                 </article>
                 <article class="if-admin-metric-card">
-                    <span class="if-admin-metric-icon is-amber"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-icon is-green"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
                     <span class="if-admin-metric-label">Próximos do vencimento</span>
-                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
-                    <span class="if-admin-metric-note">Aguardando integração</span>
+                    <strong class="if-admin-metric-value">{{ indicadores.proximos_vencimento }}</strong>
+                    <span class="if-admin-metric-note">Prazo termina em até 3 dias</span>
                 </article>
             </div>
         </section>

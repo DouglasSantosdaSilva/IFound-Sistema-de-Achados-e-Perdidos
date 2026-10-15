@@ -6,7 +6,8 @@ from unittest.mock import patch
 from PIL import Image
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.http import HttpResponse
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from .models import Perfil, Item, Solicitacao
@@ -336,3 +337,77 @@ class ItemDeadlineTests(SimpleTestCase):
 			)
 		localdate.assert_called_once_with()
 		self.assertEqual(result.classificacao, 'proximo_vencimento')
+
+
+class AdminDashboardIndicatorsTests(SimpleTestCase):
+	class MemoryQuerySet(list):
+		def only(self, *fields):
+			self.selected_fields = fields
+			return self
+
+		def count(self):
+			return len(self)
+
+	def test_authorized_dashboard_counts_indicators_using_sample_records(self):
+		today = date(2026, 10, 15)
+		found_items = self.MemoryQuerySet([
+			Item(status='achei', data_encontrado=today - timedelta(days=12)),
+			Item(status='achei', data_encontrado=today - timedelta(days=16)),
+			Item(status='achei', data_encontrado=None),
+			Item(status='achei', data_encontrado=today - timedelta(days=4)),
+		])
+		lost_items = self.MemoryQuerySet([
+			Item(status='perdi', data_encontrado=today - timedelta(days=16)),
+		])
+		analysis_requests = self.MemoryQuerySet(['requester-a', 'requester-b'])
+
+		def filter_items(**filters):
+			if filters == {'status': 'achei'}:
+				return found_items
+			if filters == {'status': 'perdi'}:
+				return lost_items
+			self.fail(f'Filtro inesperado para Item: {filters}')
+
+		request = RequestFactory().get('/admin-dashboard/')
+		request.user = type('AuthorizedUser', (), {
+			'is_authenticated': True,
+			'is_superuser': False,
+			'has_perm': lambda self, permission: permission == 'ifound.access_ifound_admin_area',
+		})()
+
+		from . import views
+		with patch.object(views.Item.objects, 'filter', side_effect=filter_items) as item_filter, \
+				patch.object(views.Solicitacao.objects, 'filter', return_value=analysis_requests) as request_filter, \
+				patch('ifound.views.timezone.localdate', return_value=today), \
+				patch('ifound.views.render', return_value=HttpResponse('dashboard')) as render:
+			response = views.admin_dashboard(request)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(item_filter.call_count, 2)
+		self.assertEqual(request_filter.call_args.kwargs, {'status': 'em_analise'})
+		self.assertEqual(found_items.selected_fields, ('status', 'data_encontrado'))
+		context = render.call_args.args[2]
+		self.assertEqual(context['indicadores'], {
+			'itens_encontrados': 4,
+			'itens_perdidos': 1,
+			'proximos_vencimento': 1,
+			'itens_vencidos': 1,
+			'solicitacoes_em_analise': 2,
+		})
+		self.assertNotIn('requester-a', repr(context))
+		self.assertNotIn('requester-b', repr(context))
+
+	def test_user_without_dashboard_permission_receives_forbidden(self):
+		request = RequestFactory().get('/admin-dashboard/')
+		request.user = type('UnauthorizedUser', (), {
+			'is_authenticated': True,
+			'is_superuser': False,
+			'has_perm': lambda self, permission: False,
+		})()
+
+		from . import views
+		with patch('ifound.views.render') as render:
+			response = views.admin_dashboard(request)
+
+		self.assertEqual(response.status_code, 403)
+		render.assert_not_called()

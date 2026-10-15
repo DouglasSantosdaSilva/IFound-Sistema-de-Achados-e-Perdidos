@@ -309,6 +309,23 @@ a.if-admin-nav-link:hover {
     line-height: 1.15;
 }
 
+.if-admin-metric-pair {
+    display: flex;
+    align-items: flex-start;
+    gap: 25px;
+    margin-top: 1px;
+}
+
+.if-admin-metric-pair > div {
+    display: grid;
+    gap: 1px;
+}
+
+.if-admin-metric-pair > div > span {
+    color: #8b95a5;
+    font-size: 9px;
+}
+
 .if-admin-metric-note {
     margin-top: 4px;
     color: #a0a8b4;
