@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 from PIL import Image, UnidentifiedImageError
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,12 +8,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db.models import Count
 from django.core.files.images import ImageFile
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.db.models.functions import TruncMonth
 from django.db import transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse
@@ -70,6 +73,66 @@ def _status_filter_value(value):
     if value == 'em-analise':
         return 'em-analise'
     return None
+
+
+_MONTH_LABELS_PT = ('Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez')
+
+
+def _month_start(year, month, offset=0):
+    month_index = year * 12 + month - 1 + offset
+    target_year, target_month = divmod(month_index, 12)
+    return datetime(target_year, target_month + 1, 1)
+
+
+def _format_dashboard_chart_data(monthly_rows, request_rows, today):
+    month_starts = [_month_start(today.year, today.month, offset) for offset in range(-5, 1)]
+    monthly_totals = {}
+    for row in monthly_rows:
+        month = row['mes']
+        monthly_totals[(month.year, month.month, row['status'])] = row['total']
+
+    requests_by_status = {status: 0 for status, _label in Solicitacao.STATUS_CHOICES}
+    for row in request_rows:
+        if row['status'] in requests_by_status:
+            requests_by_status[row['status']] = row['total']
+
+    return {
+        'itens_por_mes': {
+            'labels': [f'{_MONTH_LABELS_PT[month.month - 1]}/{month.year % 100:02d}' for month in month_starts],
+            'encontrados': [monthly_totals.get((month.year, month.month, 'achei'), 0) for month in month_starts],
+            'perdidos': [monthly_totals.get((month.year, month.month, 'perdi'), 0) for month in month_starts],
+        },
+        'solicitacoes_por_situacao': {
+            'keys': list(requests_by_status),
+            'labels': [label for _status, label in Solicitacao.STATUS_CHOICES],
+            'values': list(requests_by_status.values()),
+        },
+    }
+
+
+def _get_dashboard_chart_data(today):
+    first_month = _month_start(today.year, today.month, -5)
+    next_month = _month_start(today.year, today.month, 1)
+    current_timezone = timezone.get_current_timezone()
+    start_at = timezone.make_aware(first_month, current_timezone)
+    end_at = timezone.make_aware(next_month, current_timezone)
+
+    # criado_em registra quando o item entrou no sistema; data_encontrado é outro evento.
+    monthly_rows = (
+        Item.objects.filter(
+            status__in=('achei', 'perdi'),
+            criado_em__gte=start_at,
+            criado_em__lt=end_at,
+        )
+        .annotate(mes=TruncMonth('criado_em', tzinfo=current_timezone))
+        .values('mes', 'status')
+        .annotate(total=Count('pk'))
+    )
+    request_rows = (
+        Solicitacao.objects.values('status')
+        .annotate(total=Count('pk'))
+    )
+    return _format_dashboard_chart_data(monthly_rows, request_rows, today)
 
 
 def index(request):
@@ -353,6 +416,7 @@ def admin_dashboard(request):
     solicitacoes_em_analise = Solicitacao.objects.filter(status='em_analise').count()
 
     hoje = timezone.localdate()
+    graficos = _get_dashboard_chart_data(hoje)
     classificacoes_prazo = [
         calcular_prazo_retirada(item, hoje=hoje).classificacao
         for item in itens_encontrados
@@ -366,7 +430,10 @@ def admin_dashboard(request):
         'solicitacoes_em_analise': solicitacoes_em_analise,
     }
 
-    return render(request, 'admin_dashboard.html', {'indicadores': indicadores})
+    return render(request, 'admin_dashboard.html', {
+        'indicadores': indicadores,
+        'graficos': graficos,
+    })
 
 
 @login_required

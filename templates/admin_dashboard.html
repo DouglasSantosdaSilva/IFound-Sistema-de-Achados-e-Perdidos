@@ -108,43 +108,52 @@
             <div class="if-admin-section-heading">
                 <div>
                     <p class="if-admin-section-kicker">ACOMPANHAMENTO</p>
-                    <h2 id="adminChartsTitle">Visão do sistema</h2>
+                    <h2 id="adminChartsTitle">Gráficos do sistema</h2>
                 </div>
-                <span class="if-admin-section-caption">Áreas reservadas para visualizações futuras</span>
+                <span class="if-admin-section-caption">Dados agrupados por período e situação</span>
             </div>
 
             <div class="if-admin-charts-grid">
                 <article class="if-admin-panel-card">
                     <header class="if-admin-panel-heading">
                         <div>
-                            <h3>Itens por situação</h3>
-                            <p>Distribuição dos registros</p>
+                            <h3>Itens cadastrados por mês</h3>
+                            <p>Últimos seis meses, incluindo o mês atual</p>
                         </div>
                         <i class="bi bi-three-dots" aria-hidden="true"></i>
                     </header>
-                    <div class="if-admin-chart-placeholder" aria-label="Área reservada para gráfico de itens por situação">
-                        <span class="if-admin-placeholder-icon"><i class="bi bi-pie-chart" aria-hidden="true"></i></span>
-                        <strong>Gráfico a implementar</strong>
-                        <span>Os dados serão exibidos nesta área.</span>
+                    <div class="if-admin-chart-area if-admin-monthly-chart">
+                        <div class="if-admin-chart-scroll">
+                            <svg id="ifAdminMonthlyChart" viewBox="0 0 640 250" role="img" aria-label="Itens encontrados e perdidos cadastrados nos últimos seis meses"></svg>
+                        </div>
+                        <div class="if-admin-chart-legend" aria-label="Legenda do gráfico mensal">
+                            <span><i class="is-found" aria-hidden="true"></i>Encontrados</span>
+                            <span><i class="is-lost" aria-hidden="true"></i>Perdidos</span>
+                        </div>
                     </div>
                 </article>
 
                 <article class="if-admin-panel-card">
                     <header class="if-admin-panel-heading">
                         <div>
-                            <h3>Prazos de retirada</h3>
-                            <p>Acompanhamento dos itens encontrados</p>
+                            <h3>Solicitações por situação</h3>
+                            <p>Distribuição das solicitações registradas</p>
                         </div>
                         <i class="bi bi-three-dots" aria-hidden="true"></i>
                     </header>
-                    <div class="if-admin-chart-placeholder" aria-label="Área reservada para gráfico de prazos de retirada">
-                        <span class="if-admin-placeholder-icon is-amber"><i class="bi bi-calendar2-week" aria-hidden="true"></i></span>
-                        <strong>Gráfico a implementar</strong>
-                        <span>Os dados serão exibidos nesta área.</span>
+                    <div class="if-admin-chart-area if-admin-request-chart">
+                        <div class="if-admin-donut-layout">
+                            <svg id="ifAdminRequestChart" viewBox="0 0 180 180" role="img" aria-label="Solicitações agrupadas por situação"></svg>
+                            <ul id="ifAdminRequestLegend" class="if-admin-chart-legend is-vertical" aria-label="Legenda de solicitações por situação"></ul>
+                        </div>
                     </div>
                 </article>
             </div>
         </section>
+
+        {{ graficos.itens_por_mes|json_script:"ifAdminMonthlyChartData" }}
+        {{ graficos.solicitacoes_por_situacao|json_script:"ifAdminRequestChartData" }}
+        <script src="{% static 'js/admin_dashboard_charts.js' %}" defer></script>
 
         <section class="if-admin-section" id="adminDeadlines" aria-labelledby="adminDeadlinesTitle">
             <div class="if-admin-section-heading">

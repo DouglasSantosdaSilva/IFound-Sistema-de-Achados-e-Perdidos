@@ -1,5 +1,5 @@
 from io import BytesIO
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import tempfile
 from unittest.mock import patch
 
@@ -379,12 +379,14 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 		with patch.object(views.Item.objects, 'filter', side_effect=filter_items) as item_filter, \
 				patch.object(views.Solicitacao.objects, 'filter', return_value=analysis_requests) as request_filter, \
 				patch('ifound.views.timezone.localdate', return_value=today), \
+				patch('ifound.views._get_dashboard_chart_data', return_value={'sample': True}) as chart_data, \
 				patch('ifound.views.render', return_value=HttpResponse('dashboard')) as render:
 			response = views.admin_dashboard(request)
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(item_filter.call_count, 2)
 		self.assertEqual(request_filter.call_args.kwargs, {'status': 'em_analise'})
+		chart_data.assert_called_once_with(today)
 		self.assertEqual(found_items.selected_fields, ('status', 'data_encontrado'))
 		context = render.call_args.args[2]
 		self.assertEqual(context['indicadores'], {
@@ -394,6 +396,7 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 			'itens_vencidos': 1,
 			'solicitacoes_em_analise': 2,
 		})
+		self.assertEqual(context['graficos'], {'sample': True})
 		self.assertNotIn('requester-a', repr(context))
 		self.assertNotIn('requester-b', repr(context))
 
@@ -411,3 +414,39 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 
 		self.assertEqual(response.status_code, 403)
 		render.assert_not_called()
+
+
+class AdminDashboardChartDataTests(SimpleTestCase):
+	def test_monthly_chart_has_six_months_and_zeroes_for_missing_months(self):
+		from .views import _format_dashboard_chart_data
+
+		chart_data = _format_dashboard_chart_data(
+			[
+				{'mes': datetime(2026, 10, 1), 'status': 'achei', 'total': 2},
+				{'mes': datetime(2026, 8, 1), 'status': 'perdi', 'total': 1},
+			],
+			[],
+			date(2026, 10, 15),
+		)
+
+		monthly = chart_data['itens_por_mes']
+		self.assertEqual(monthly['labels'], ['Mai/26', 'Jun/26', 'Jul/26', 'Ago/26', 'Set/26', 'Out/26'])
+		self.assertEqual(monthly['encontrados'], [0, 0, 0, 0, 0, 2])
+		self.assertEqual(monthly['perdidos'], [0, 0, 0, 1, 0, 0])
+
+	def test_solicitation_chart_uses_all_model_choices_and_zeroes_missing_statuses(self):
+		from .views import _format_dashboard_chart_data
+
+		chart_data = _format_dashboard_chart_data(
+			[],
+			[
+				{'status': 'em_analise', 'total': 3},
+				{'status': 'aprovada', 'total': 2},
+			],
+			date(2026, 10, 15),
+		)
+
+		requests = chart_data['solicitacoes_por_situacao']
+		self.assertEqual(requests['keys'], [status for status, _label in Solicitacao.STATUS_CHOICES])
+		self.assertEqual(requests['labels'], [label for _status, label in Solicitacao.STATUS_CHOICES])
+		self.assertEqual(requests['values'], [3, 2, 0])
