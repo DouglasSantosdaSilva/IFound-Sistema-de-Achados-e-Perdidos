@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Administrativo - IFound{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+
+<div class="if-admin-dashboard">
+    <aside class="if-admin-sidebar" aria-label="Navegação administrativa">
+        <a class="if-admin-brand" href="{% url 'index' %}">
+            <span class="if-admin-brand-mark"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <span>
+                <strong>IFound</strong>
+                <small>ADMINISTRAÇÃO</small>
+            </span>
+        </a>
+
+        <p class="if-admin-nav-label">PAINEL</p>
+        <nav class="if-admin-nav">
+            <a class="if-admin-nav-link is-active" href="#adminOverview" aria-current="page">
+                <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
+                <span>Visão geral</span>
+            </a>
+            <a class="if-admin-nav-link" href="#adminIndicators">
+                <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+                <span>Indicadores</span>
+            </a>
+            <a class="if-admin-nav-link" href="#adminDeadlines">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                <span>Prazos de retirada</span>
+            </a>
+            <span class="if-admin-nav-link is-future" aria-disabled="true">
+                <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                <span>Solicitações</span>
+                <small>Em breve</small>
+            </span>
+            <span class="if-admin-nav-link is-future" aria-disabled="true">
+                <i class="bi bi-tags" aria-hidden="true"></i>
+                <span>Categorias</span>
+                <small>Em breve</small>
+            </span>
+        </nav>
+
+        <div class="if-admin-sidebar-footer">
+            <span class="if-admin-sidebar-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Prévia visual</span>
+            <a href="{% url 'index' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar ao site</a>
+        </div>
+    </aside>
+
+    <main class="if-admin-main" id="adminOverview">
+        <header class="if-admin-page-header">
+            <div>
+                <p class="if-admin-eyebrow">IFOUND / ADMINISTRAÇÃO</p>
+                <h1>Dashboard Administrativo</h1>
+                <p class="if-admin-page-description">Visão geral dos itens, solicitações e prazos de retirada.</p>
+            </div>
+            <span class="if-admin-preview-badge"><i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i> Dados ainda não conectados</span>
+        </header>
+
+        <section class="if-admin-section" id="adminIndicators" aria-labelledby="adminIndicatorsTitle">
+            <div class="if-admin-section-heading">
+                <div>
+                    <p class="if-admin-section-kicker">RESUMO DO SISTEMA</p>
+                    <h2 id="adminIndicatorsTitle">Indicadores</h2>
+                </div>
+                <span class="if-admin-section-caption">Estrutura reservada para dados reais</span>
+            </div>
+
+            <div class="if-admin-metrics-grid">
+                <article class="if-admin-metric-card">
+                    <span class="if-admin-metric-icon is-blue"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-label">Itens cadastrados</span>
+                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
+                    <span class="if-admin-metric-note">Aguardando integração</span>
+                </article>
+                <article class="if-admin-metric-card">
+                    <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-label">Solicitações em análise</span>
+                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
+                    <span class="if-admin-metric-note">Aguardando integração</span>
+                </article>
+                <article class="if-admin-metric-card">
+                    <span class="if-admin-metric-icon is-green"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-label">Aguardando retirada</span>
+                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
+                    <span class="if-admin-metric-note">Aguardando integração</span>
+                </article>
+                <article class="if-admin-metric-card">
+                    <span class="if-admin-metric-icon is-amber"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                    <span class="if-admin-metric-label">Próximos do vencimento</span>
+                    <strong class="if-admin-metric-value" aria-label="Indicador sem dados">—</strong>
+                    <span class="if-admin-metric-note">Aguardando integração</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="if-admin-section" aria-labelledby="adminChartsTitle">
+            <div class="if-admin-section-heading">
+                <div>
+                    <p class="if-admin-section-kicker">ACOMPANHAMENTO</p>
+                    <h2 id="adminChartsTitle">Visão do sistema</h2>
+                </div>
+                <span class="if-admin-section-caption">Áreas reservadas para visualizações futuras</span>
+            </div>
+
+            <div class="if-admin-charts-grid">
+                <article class="if-admin-panel-card">
+                    <header class="if-admin-panel-heading">
+                        <div>
+                            <h3>Itens por situação</h3>
+                            <p>Distribuição dos registros</p>
+                        </div>
+                        <i class="bi bi-three-dots" aria-hidden="true"></i>
+                    </header>
+                    <div class="if-admin-chart-placeholder" aria-label="Área reservada para gráfico de itens por situação">
+                        <span class="if-admin-placeholder-icon"><i class="bi bi-pie-chart" aria-hidden="true"></i></span>
+                        <strong>Gráfico a implementar</strong>
+                        <span>Os dados serão exibidos nesta área.</span>
+                    </div>
+                </article>
+
+                <article class="if-admin-panel-card">
+                    <header class="if-admin-panel-heading">
+                        <div>
+                            <h3>Prazos de retirada</h3>
+                            <p>Acompanhamento dos itens encontrados</p>
+                        </div>
+                        <i class="bi bi-three-dots" aria-hidden="true"></i>
+                    </header>
+                    <div class="if-admin-chart-placeholder" aria-label="Área reservada para gráfico de prazos de retirada">
+                        <span class="if-admin-placeholder-icon is-amber"><i class="bi bi-calendar2-week" aria-hidden="true"></i></span>
+                        <strong>Gráfico a implementar</strong>
+                        <span>Os dados serão exibidos nesta área.</span>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="if-admin-section" id="adminDeadlines" aria-labelledby="adminDeadlinesTitle">
+            <div class="if-admin-section-heading">
+                <div>
+                    <p class="if-admin-section-kicker">ACOMPANHAMENTO DE ITENS</p>
+                    <h2 id="adminDeadlinesTitle">Prazos de retirada</h2>
+                </div>
+                <span class="if-admin-section-caption">Tabela preparada para integração futura</span>
+            </div>
+
+            <div class="if-admin-panel-card if-admin-table-card">
+                <div class="if-admin-table-toolbar">
+                    <div>
+                        <h3>Itens encontrados</h3>
+                        <p>Itens aguardando retirada e seus respectivos prazos.</p>
+                    </div>
+                    <span class="if-admin-table-placeholder-label"><i class="bi bi-database" aria-hidden="true"></i> Sem dados conectados</span>
+                </div>
+                <div class="if-admin-table-scroll">
+                    <table class="if-admin-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col">Categoria</th>
+                                <th scope="col">Data do achado</th>
+                                <th scope="col">Data limite</th>
+                                <th scope="col">Situação do prazo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5">
+                                    <div class="if-admin-empty-state">
+                                        <i class="bi bi-inboxes" aria-hidden="true"></i>
+                                        <strong>Nenhum dado exibido nesta prévia</strong>
+                                        <span>A tabela será preenchida quando a integração administrativa for implementada.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <footer class="if-admin-page-footer">IFound · Estrutura visual do painel administrativo</footer>
+    </main>
+</div>
+{% endblock %}

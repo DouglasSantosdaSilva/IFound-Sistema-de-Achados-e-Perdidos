@@ -1,13 +1,16 @@
 from io import BytesIO
+from datetime import date, timedelta
 import tempfile
+from unittest.mock import patch
 
 from PIL import Image
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from .models import Perfil, Item, Solicitacao
+from .prazos import calcular_prazo_retirada
 
 
 class ProfilePhotoUploadTests(TestCase):
@@ -256,3 +259,80 @@ class EditProfileTests(TestCase):
 		response = self.client.get(reverse('editar_perfil'))
 
 		self.assertEqual(response.status_code, 302)
+
+
+class ItemDeadlineTests(SimpleTestCase):
+	def item(self, status='achei', data_encontrado=None):
+		return Item(status=status, data_encontrado=data_encontrado)
+
+	def test_found_item_with_distant_deadline_is_awaiting_pickup(self):
+		today = date(2026, 10, 15)
+		result = calcular_prazo_retirada(
+			self.item(data_encontrado=today - timedelta(days=4)),
+			hoje=today,
+		)
+		self.assertEqual(result.data_limite, today + timedelta(days=11))
+		self.assertEqual(result.classificacao, 'aguardando_retirada')
+		self.assertEqual(result.dias_restantes, 11)
+
+	def test_found_item_due_in_exactly_three_days_is_approaching_deadline(self):
+		today = date(2026, 10, 15)
+		result = calcular_prazo_retirada(
+			self.item(data_encontrado=today - timedelta(days=12)),
+			hoje=today,
+		)
+		self.assertEqual(result.classificacao, 'proximo_vencimento')
+		self.assertEqual(result.dias_restantes, 3)
+
+	def test_found_item_due_today_is_still_within_deadline(self):
+		today = date(2026, 10, 15)
+		result = calcular_prazo_retirada(
+			self.item(data_encontrado=today - timedelta(days=15)),
+			hoje=today,
+		)
+		self.assertEqual(result.data_limite, today)
+		self.assertEqual(result.classificacao, 'proximo_vencimento')
+		self.assertEqual(result.dias_restantes, 0)
+
+	def test_found_item_expired_yesterday_is_overdue(self):
+		today = date(2026, 10, 15)
+		result = calcular_prazo_retirada(
+			self.item(data_encontrado=today - timedelta(days=16)),
+			hoje=today,
+		)
+		self.assertEqual(result.data_limite, today - timedelta(days=1))
+		self.assertEqual(result.classificacao, 'vencido')
+		self.assertEqual(result.dias_restantes, -1)
+
+	def test_found_item_without_found_date_has_no_deadline_status(self):
+		result = calcular_prazo_retirada(self.item(data_encontrado=None), hoje=date(2026, 10, 15))
+		self.assertEqual(result.data_limite, None)
+		self.assertEqual(result.classificacao, 'data_nao_informada')
+		self.assertEqual(result.dias_restantes, None)
+
+	def test_lost_item_is_excluded_even_when_found_date_is_set(self):
+		result = calcular_prazo_retirada(
+			self.item(status='perdi', data_encontrado=date(2026, 10, 1)),
+			hoje=date(2026, 10, 15),
+		)
+		self.assertEqual(result.data_limite, None)
+		self.assertEqual(result.classificacao, 'nao_aplicavel')
+		self.assertEqual(result.dias_restantes, None)
+
+	def test_deadline_is_exactly_fifteen_calendar_days_after_found_date(self):
+		found_date = date(2026, 10, 1)
+		result = calcular_prazo_retirada(
+			self.item(data_encontrado=found_date),
+			hoje=date(2026, 10, 1),
+		)
+		self.assertEqual(result.data_limite, date(2026, 10, 16))
+		self.assertEqual(result.data_limite - found_date, timedelta(days=15))
+
+	def test_default_today_uses_django_local_date(self):
+		local_today = date(2026, 10, 15)
+		with patch('ifound.prazos.timezone.localdate', return_value=local_today) as localdate:
+			result = calcular_prazo_retirada(
+				self.item(data_encontrado=local_today - timedelta(days=12))
+			)
+		localdate.assert_called_once_with()
+		self.assertEqual(result.classificacao, 'proximo_vencimento')
