@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.utils.dateparse import parse_date
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse
 
 from .models import Perfil, Item, Solicitacao
@@ -334,6 +334,17 @@ def editar_perfil(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+def admin_dashboard(request):
+    if not (
+        request.user.is_superuser
+        or request.user.has_perm('ifound.access_ifound_admin_area')
+    ):
+        return HttpResponseForbidden('Você não tem permissão para acessar esta página.')
+
+    return render(request, 'admin_dashboard.html')
 
 
 @login_required
