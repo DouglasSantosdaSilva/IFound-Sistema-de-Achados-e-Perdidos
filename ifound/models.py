@@ -3,6 +3,11 @@ from django.contrib.auth.models import User
 
 
 class Perfil(models.Model):
+    class Meta:
+        permissions = [
+            ('access_ifound_admin_area', 'Can access the iFound administrative area'),
+        ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     nome_completo = models.CharField(max_length=255, blank=True, null=True)
     vinculo = models.CharField(max_length=50, default='Aluno(a)')
