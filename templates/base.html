@@ -62,6 +62,15 @@
                             Cadastrar Item
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or perms.ifound.access_ifound_admin_area %}
+                            <li>
+                                <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                                    Painel Administrativo
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
                     <li>
                         <a href="{% url 'perfil' %}" class="navbar-profile-btn" title="Meu Perfil" aria-label="Meu perfil">
                             <i class="bi bi-person-circle"></i>
