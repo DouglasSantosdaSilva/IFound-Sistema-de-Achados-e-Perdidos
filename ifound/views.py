@@ -11,6 +11,7 @@ from django.core.files.images import ImageFile
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.utils.dateparse import parse_date
 from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse
@@ -560,6 +561,8 @@ def cadastrar_item(request):
             local = (request.POST.get('local') or '').strip()
             data = request.POST.get('data')
             status = request.POST.get('status')
+            categoria = (request.POST.get('categoria') or '').strip()
+            data_encontrado_raw = (request.POST.get('data_encontrado') or '').strip()
             imagem = request.FILES.get('imagem')
 
             errors = []
@@ -581,6 +584,24 @@ def cadastrar_item(request):
                     'Selecione se você achou ou perdeu o item.'
                 )
 
+            valid_categories = dict(Item.CATEGORIA_CHOICES)
+            if categoria and categoria not in valid_categories:
+                errors.append('Selecione uma categoria v\u00e1lida.')
+            elif not categoria and item.categoria:
+                # Preserve a legacy value when an older client omits the field.
+                categoria = item.categoria
+
+            parsed_data_encontrado = None
+            if status == 'achei':
+                try:
+                    parsed_data_encontrado = parse_date(data_encontrado_raw)
+                except ValueError:
+                    parsed_data_encontrado = None
+                if not data_encontrado_raw:
+                    errors.append('Informe a data em que o objeto foi encontrado.')
+                elif parsed_data_encontrado is None:
+                    errors.append('Informe uma data v\u00e1lida para o achado.')
+
             if errors:
                 if is_ajax:
                     return JsonResponse(
@@ -599,7 +620,8 @@ def cadastrar_item(request):
                     'cadastrar_item.html',
                     {
                         'item': item,
-                        'edit_mode': True
+                        'edit_mode': True,
+                        'categorias': Item.CATEGORIA_CHOICES,
                     },
                     status=400
                 )
@@ -609,6 +631,10 @@ def cadastrar_item(request):
             item.local = local
             item.data_registro = data
             item.status = status
+            if categoria:
+                item.categoria = categoria
+            if status == 'achei':
+                item.data_encontrado = parsed_data_encontrado
 
             if imagem:
                 item.imagem = imagem
@@ -640,6 +666,8 @@ def cadastrar_item(request):
         local = (request.POST.get('local') or '').strip()
         data = request.POST.get('data')
         status = request.POST.get('status')
+        categoria = (request.POST.get('categoria') or '').strip()
+        data_encontrado_raw = (request.POST.get('data_encontrado') or '').strip()
         imagem = request.FILES.get('imagem')
 
         errors = []
@@ -661,6 +689,23 @@ def cadastrar_item(request):
                 'Selecione se você achou ou perdeu o item.'
             )
 
+        valid_categories = dict(Item.CATEGORIA_CHOICES)
+        if not categoria:
+            errors.append('Selecione uma categoria.')
+        elif categoria not in valid_categories:
+            errors.append('Selecione uma categoria v\u00e1lida.')
+
+        parsed_data_encontrado = None
+        if status == 'achei':
+            try:
+                parsed_data_encontrado = parse_date(data_encontrado_raw)
+            except ValueError:
+                parsed_data_encontrado = None
+            if not data_encontrado_raw:
+                errors.append('Informe a data em que o objeto foi encontrado.')
+            elif parsed_data_encontrado is None:
+                errors.append('Informe uma data v\u00e1lida para o achado.')
+
         if errors:
             if is_ajax:
                 return JsonResponse(
@@ -679,7 +724,8 @@ def cadastrar_item(request):
                 'cadastrar_item.html',
                 {
                     'item': None,
-                    'edit_mode': False
+                    'edit_mode': False,
+                    'categorias': Item.CATEGORIA_CHOICES,
                 },
                 status=400
             )
@@ -689,6 +735,8 @@ def cadastrar_item(request):
             descricao=descricao,
             local=local,
             data_registro=data,
+            categoria=categoria,
+            data_encontrado=parsed_data_encontrado,
             status=status,
             imagem=imagem,
             usuario=request.user
@@ -715,7 +763,8 @@ def cadastrar_item(request):
         'cadastrar_item.html',
         {
             'item': item,
-            'edit_mode': bool(item)
+            'edit_mode': bool(item),
+            'categorias': Item.CATEGORIA_CHOICES,
         }
     )
 

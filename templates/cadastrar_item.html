@@ -92,13 +92,35 @@
                             required
                         >
                     </div>
+
+                    <div class="form-group">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select name="categoria" id="categoria" class="form-input" {% if not edit_mode %}required{% endif %}>
+                            <option value="">Selecione uma categoria</option>
+                            {% for value, label in categorias %}
+                                <option value="{{ value }}" {% if edit_mode and item.categoria == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="dataEncontradoGroup" {% if not edit_mode or not item or item.status != 'achei' %}hidden{% endif %}>
+                        <label for="data_encontrado" class="form-label">Data em que encontrou</label>
+                        <input
+                            type="date"
+                            name="data_encontrado"
+                            id="data_encontrado"
+                            class="form-input"
+                            value="{% if edit_mode and item %}{{ item.data_encontrado|date:'Y-m-d' }}{% endif %}"
+                        >
+                        <small class="field-hint">Informe quando o objeto foi efetivamente encontrado.</small>
+                    </div>
                 </div>
 
                 <div class="form-group status-block">
                     <label class="form-label">Você achou ou perdeu?</label>
                     <div class="status-options" id="statusGroup">
                         <label class="status-option">
-                            <input type="radio" name="status" value="achei">
+                            <input type="radio" name="status" value="achei" {% if not edit_mode or item.status == 'achei' %}checked{% endif %}>
                             <span class="status-pill status-achado">
                                 <i class="bi bi-check-circle"></i>
                                 Achei
@@ -106,7 +128,7 @@
                         </label>
 
                         <label class="status-option">
-                            <input type="radio" name="status" value="perdi">
+                            <input type="radio" name="status" value="perdi" {% if edit_mode and item.status == 'perdi' %}checked{% endif %}>
                             <span class="status-pill status-perdido">
                                 <i class="bi bi-exclamation-triangle"></i>
                                 Perdi
@@ -170,6 +192,25 @@
         const toastContainer = document.getElementById('toast-container');
         const submitButton = form?.querySelector('button[type="submit"]');
         const submitButtonLabel = document.getElementById('submitButtonLabel');
+        const categoryInput = document.getElementById('categoria');
+        const foundDateGroup = document.getElementById('dataEncontradoGroup');
+        const foundDateInput = document.getElementById('data_encontrado');
+        const categoryRequired = {{ edit_mode|yesno:'false,true' }};
+
+        function syncFoundDateField() {
+            const selectedStatus = form?.querySelector('input[name="status"]:checked')?.value;
+            const isFound = selectedStatus === 'achei';
+            if (foundDateGroup) foundDateGroup.hidden = !isFound;
+            if (foundDateInput) {
+                foundDateInput.required = isFound;
+                foundDateInput.disabled = !isFound;
+            }
+        }
+
+        form?.querySelectorAll('input[name="status"]').forEach((input) => {
+            input.addEventListener('change', syncFoundDateField);
+        });
+        syncFoundDateField();
 
         function showToast(title, message, type = 'info') {
             if (!toastContainer) return;
@@ -308,8 +349,10 @@
             const local = form.querySelector('input[name="local"]').value.trim();
             const data = form.querySelector('input[name="data"]').value;
             const situacao = form.querySelector('input[name="status"]:checked');
+            const categoria = categoryInput?.value || '';
+            const dataEncontrado = foundDateInput?.value || '';
 
-            if (!nome || !descricao || !local || !data || !situacao) {
+            if (!nome || !descricao || !local || !data || !situacao || (categoryRequired && !categoria) || (situacao?.value === 'achei' && !dataEncontrado)) {
                 showToast('Atenção', situacao ? 'Preencha todos os campos obrigatórios.' : 'Selecione se você achou ou perdeu o item.', 'warning');
                 if (!situacao) {
                     setStatusHighlight();

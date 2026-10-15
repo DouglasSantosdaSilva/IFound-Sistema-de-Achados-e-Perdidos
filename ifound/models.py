@@ -20,6 +20,15 @@ class Perfil(models.Model):
 
 
 class Item(models.Model):
+    CATEGORIA_CHOICES = [
+        ('eletronicos', 'Eletrônicos'),
+        ('acessorios', 'Acessórios'),
+        ('material_escolar', 'Material escolar'),
+        ('documentos', 'Documentos'),
+        ('vestuario', 'Vestuário'),
+        ('outros', 'Outros'),
+    ]
+
     STATUS_CHOICES = [
         ('achei', 'Achei'),
         ('perdi', 'Perdi'),
@@ -29,6 +38,8 @@ class Item(models.Model):
     descricao = models.TextField()
     local = models.CharField(max_length=100)
     data_registro = models.DateField()
+    categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, blank=True, null=True)
+    data_encontrado = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='achei')
     imagem = models.ImageField(upload_to='itens/', null=True, blank=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='itens')
