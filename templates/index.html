@@ -5,7 +5,7 @@
 {% block content %}
     <!-- HERO SECTION -->
     <section class="hero-section">
-        <div class="hero-background" style="background-image: url('{% static 'images/campus-pagina-inicial.jpg' %}'), url('{% static 'img/campus-pagina-inicial.jpg' %}');">
+        <div class="hero-background" style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');">
             <div class="hero-overlay"></div>
         </div>
 
@@ -130,5 +130,5 @@
             hasMorePages: {{ page_obj.has_next|yesno:'true,false' }}
         };
     </script>
-    <script src="{% static 'js/index.js' %}"></script>
+    <script src="{% static 'js/index.js' %}?v=20261111"></script>
 {% endblock %}
