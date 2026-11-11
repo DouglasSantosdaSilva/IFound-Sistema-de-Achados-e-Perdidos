@@ -416,6 +416,52 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 		render.assert_not_called()
 
 
+class AdminDashboardPagesTests(TestCase):
+	def setUp(self):
+		self.admin = User.objects.create_superuser(
+			username='admin-dashboard-test',
+			email='admin-dashboard-test@example.com',
+			password='test-password',
+		)
+		self.client.force_login(self.admin)
+
+	def test_admin_navigation_opens_independent_pages_with_active_link(self):
+		pages = (
+			('admin_dashboard', 'Itens encontrados e perdidos', 'ifAdminMonthlyChart'),
+			('admin_indicadores', 'ifAdminMonthlyChart', 'adminDeadlinesTitle'),
+			('admin_prazos', 'adminDeadlinesTitle', 'ifAdminMonthlyChart'),
+			('admin_solicitacoes', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
+			('admin_categorias', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
+		)
+
+		for url_name, included_content, excluded_content in pages:
+			with self.subTest(page=url_name):
+				response = self.client.get(reverse(url_name))
+
+				self.assertEqual(response.status_code, 200)
+				self.assertContains(response, included_content)
+				self.assertNotContains(response, excluded_content)
+				self.assertContains(
+					response,
+					f'class="if-admin-nav-link is-active" href="{reverse(url_name)}"',
+				)
+
+	def test_each_admin_page_keeps_the_existing_permission_requirement(self):
+		user = User.objects.create_user(username='regular-user', password='test-password')
+		self.client.force_login(user)
+
+		for url_name in (
+			'admin_dashboard',
+			'admin_indicadores',
+			'admin_prazos',
+			'admin_solicitacoes',
+			'admin_categorias',
+		):
+			with self.subTest(page=url_name):
+				response = self.client.get(reverse(url_name))
+				self.assertEqual(response.status_code, 403)
+
+
 class AdminDashboardChartDataTests(SimpleTestCase):
 	def test_monthly_chart_has_six_months_and_zeroes_for_missing_months(self):
 		from .views import _format_dashboard_chart_data

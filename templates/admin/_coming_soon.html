@@ -1,0 +1,26 @@
+<section class="if-admin-section" aria-labelledby="adminSectionTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">{{ section_kicker }}</p>
+            <h2 id="adminSectionTitle">{{ section_title }}</h2>
+        </div>
+        <span class="if-admin-section-caption">Funcionalidade em breve</span>
+    </div>
+
+    <div class="if-admin-panel-card if-admin-table-card">
+        <div class="if-admin-table-toolbar">
+            <div>
+                <h3>{{ section_title }}</h3>
+                <p>{{ section_description }}</p>
+            </div>
+            <span class="if-admin-table-placeholder-label"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Em breve</span>
+        </div>
+        <div class="if-admin-table-scroll">
+            <div class="if-admin-empty-state">
+                <i class="{{ section_icon }}" aria-hidden="true"></i>
+                <strong>Esta área ainda não possui funcionalidades implementadas</strong>
+                <span>A página está disponível para manter a navegação administrativa organizada.</span>
+            </div>
+        </div>
+    </div>
+</section>

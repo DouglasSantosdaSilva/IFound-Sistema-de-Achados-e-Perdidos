@@ -4,6 +4,10 @@ from . import views
 
 urlpatterns = [
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/indicadores/', views.admin_indicadores, name='admin_indicadores'),
+    path('admin-dashboard/prazos/', views.admin_prazos, name='admin_prazos'),
+    path('admin-dashboard/solicitacoes/', views.admin_solicitacoes, name='admin_solicitacoes'),
+    path('admin-dashboard/categorias/', views.admin_categorias, name='admin_categorias'),
     path('login/', views.login_view, name='login'),
     path('cadastro/', views.cadastro_view, name='cadastro'),
     path('logout/', views.logout_view, name='logout'),

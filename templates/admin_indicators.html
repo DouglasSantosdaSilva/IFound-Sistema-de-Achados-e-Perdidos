@@ -1,0 +1,11 @@
+{% extends 'base_admin.html' %}
+
+{% block admin_document_title %}Indicadores{% endblock %}
+{% block admin_heading %}Indicadores{% endblock %}
+{% block admin_description %}Estatísticas e gráficos do sistema de achados e perdidos.{% endblock %}
+{% block admin_badge %}Indicadores do sistema{% endblock %}
+
+{% block admin_page_content %}
+{% include 'admin/_metrics.html' %}
+{% include 'admin/_charts.html' %}
+{% endblock %}

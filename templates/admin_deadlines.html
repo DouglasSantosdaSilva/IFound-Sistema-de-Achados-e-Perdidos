@@ -1,0 +1,52 @@
+{% extends 'base_admin.html' %}
+
+{% block admin_document_title %}Prazos de retirada{% endblock %}
+{% block admin_heading %}Prazos de retirada{% endblock %}
+{% block admin_description %}Acompanhamento dos itens encontrados e seus respectivos prazos.{% endblock %}
+{% block admin_badge %}Acompanhamento de itens{% endblock %}
+
+{% block admin_page_content %}
+<section class="if-admin-section" aria-labelledby="adminDeadlinesTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">ACOMPANHAMENTO DE ITENS</p>
+            <h2 id="adminDeadlinesTitle">Prazos de retirada</h2>
+        </div>
+        <span class="if-admin-section-caption">Tabela preparada para integração futura</span>
+    </div>
+
+    <div class="if-admin-panel-card if-admin-table-card">
+        <div class="if-admin-table-toolbar">
+            <div>
+                <h3>Itens encontrados</h3>
+                <p>Itens aguardando retirada e seus respectivos prazos.</p>
+            </div>
+            <span class="if-admin-table-placeholder-label"><i class="bi bi-database" aria-hidden="true"></i> Sem dados conectados</span>
+        </div>
+        <div class="if-admin-table-scroll">
+            <table class="if-admin-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Categoria</th>
+                        <th scope="col">Data do achado</th>
+                        <th scope="col">Data limite</th>
+                        <th scope="col">Situação do prazo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="5">
+                            <div class="if-admin-empty-state">
+                                <i class="bi bi-inboxes" aria-hidden="true"></i>
+                                <strong>Nenhum dado exibido nesta prévia</strong>
+                                <span>A tabela será preenchida quando a integração administrativa for implementada.</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base_admin.html' %}
+
+{% block admin_document_title %}Solicitações{% endblock %}
+{% block admin_heading %}Solicitações{% endblock %}
+{% block admin_description %}Área de gerenciamento das solicitações administrativas.{% endblock %}
+{% block admin_badge %}Funcionalidade futura{% endblock %}
+
+{% block admin_page_content %}
+{% include 'admin/_coming_soon.html' with section_kicker='GERENCIAMENTO' section_title='Solicitações' section_description='O gerenciamento administrativo das solicitações ainda não está implementado.' section_icon='bi bi-clipboard-check' %}
+{% endblock %}

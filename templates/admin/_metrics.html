@@ -1,0 +1,45 @@
+<section class="if-admin-section" aria-labelledby="adminIndicatorsTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">RESUMO DO SISTEMA</p>
+            <h2 id="adminIndicatorsTitle">Indicadores</h2>
+        </div>
+        <span class="if-admin-section-caption">Contagens atualizadas ao carregar o painel</span>
+    </div>
+
+    <div class="if-admin-metrics-grid">
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-blue"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Itens encontrados e perdidos</span>
+            <div class="if-admin-metric-pair">
+                <div>
+                    <strong class="if-admin-metric-value">{{ indicadores.itens_encontrados }}</strong>
+                    <span>Encontrados</span>
+                </div>
+                <div>
+                    <strong class="if-admin-metric-value">{{ indicadores.itens_perdidos }}</strong>
+                    <span>Perdidos</span>
+                </div>
+            </div>
+            <span class="if-admin-metric-note">Contagem por status do item</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Solicitações em análise</span>
+            <strong class="if-admin-metric-value">{{ indicadores.solicitacoes_em_analise }}</strong>
+            <span class="if-admin-metric-note">Solicitações com status em análise</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-amber"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Itens vencidos</span>
+            <strong class="if-admin-metric-value">{{ indicadores.itens_vencidos }}</strong>
+            <span class="if-admin-metric-note">Prazo de retirada ultrapassado</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-green"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Próximos do vencimento</span>
+            <strong class="if-admin-metric-value">{{ indicadores.proximos_vencimento }}</strong>
+            <span class="if-admin-metric-note">Prazo termina em até 3 dias</span>
+        </article>
+    </div>
+</section>

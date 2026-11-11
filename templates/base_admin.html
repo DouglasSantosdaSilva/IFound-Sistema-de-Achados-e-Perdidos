@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block admin_document_title %}Painel Administrativo{% endblock %} - IFound{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+
+<div class="if-admin-dashboard">
+    <aside class="if-admin-sidebar" aria-label="Navegação administrativa">
+        <a class="if-admin-brand" href="{% url 'index' %}">
+            <span class="if-admin-brand-mark"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <span>
+                <strong>IFound</strong>
+                <small>ADMINISTRAÇÃO</small>
+            </span>
+        </a>
+
+        <p class="if-admin-nav-label">PAINEL</p>
+        <nav class="if-admin-nav">
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}is-active{% endif %}" href="{% url 'admin_dashboard' %}" {% if request.resolver_match.url_name == 'admin_dashboard' %}aria-current="page"{% endif %}>
+                <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
+                <span>Visão geral</span>
+            </a>
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_indicadores' %}is-active{% endif %}" href="{% url 'admin_indicadores' %}" {% if request.resolver_match.url_name == 'admin_indicadores' %}aria-current="page"{% endif %}>
+                <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+                <span>Indicadores</span>
+            </a>
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_prazos' %}is-active{% endif %}" href="{% url 'admin_prazos' %}" {% if request.resolver_match.url_name == 'admin_prazos' %}aria-current="page"{% endif %}>
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                <span>Prazos de retirada</span>
+            </a>
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_solicitacoes' %}is-active{% endif %}" href="{% url 'admin_solicitacoes' %}" {% if request.resolver_match.url_name == 'admin_solicitacoes' %}aria-current="page"{% endif %}>
+                <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                <span>Solicitações</span>
+                <small>Em breve</small>
+            </a>
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_categorias' %}is-active{% endif %}" href="{% url 'admin_categorias' %}" {% if request.resolver_match.url_name == 'admin_categorias' %}aria-current="page"{% endif %}>
+                <i class="bi bi-tags" aria-hidden="true"></i>
+                <span>Categorias</span>
+                <small>Em breve</small>
+            </a>
+        </nav>
+
+        <div class="if-admin-sidebar-footer">
+            <span class="if-admin-sidebar-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Prévia visual</span>
+            <a href="{% url 'index' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar ao site</a>
+        </div>
+    </aside>
+
+    <main class="if-admin-main">
+        <header class="if-admin-page-header">
+            <div>
+                <p class="if-admin-eyebrow">IFOUND / ADMINISTRAÇÃO</p>
+                <h1>{% block admin_heading %}Painel Administrativo{% endblock %}</h1>
+                <p class="if-admin-page-description">{% block admin_description %}Visão geral dos itens, solicitações e prazos de retirada.{% endblock %}</p>
+            </div>
+            <span class="if-admin-preview-badge"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> {% block admin_badge %}Indicadores do sistema{% endblock %}</span>
+        </header>
+
+        {% block admin_page_content %}{% endblock %}
+
+        <footer class="if-admin-page-footer">IFound · Estrutura visual do painel administrativo</footer>
+    </main>
+</div>
+{% endblock %}

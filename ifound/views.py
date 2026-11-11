@@ -401,14 +401,11 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_required
-def admin_dashboard(request):
-    if not (
-        request.user.is_superuser
-        or request.user.has_perm('ifound.access_ifound_admin_area')
-    ):
-        return HttpResponseForbidden('Você não tem permissão para acessar esta página.')
+def _has_admin_dashboard_access(user):
+    return user.is_superuser or user.has_perm('ifound.access_ifound_admin_area')
 
+
+def _get_admin_dashboard_context():
     itens_encontrados = list(
         Item.objects.filter(status='achei').only('status', 'data_encontrado')
     )
@@ -430,10 +427,43 @@ def admin_dashboard(request):
         'solicitacoes_em_analise': solicitacoes_em_analise,
     }
 
-    return render(request, 'admin_dashboard.html', {
+    return {
         'indicadores': indicadores,
         'graficos': graficos,
-    })
+    }
+
+
+def _render_admin_page(request, template_name, context_factory=None):
+    if not _has_admin_dashboard_access(request.user):
+        return HttpResponseForbidden('Você não tem permissão para acessar esta página.')
+
+    context = context_factory() if context_factory else {}
+    return render(request, template_name, context)
+
+
+@login_required
+def admin_dashboard(request):
+    return _render_admin_page(request, 'admin_dashboard.html', _get_admin_dashboard_context)
+
+
+@login_required
+def admin_indicadores(request):
+    return _render_admin_page(request, 'admin_indicators.html', _get_admin_dashboard_context)
+
+
+@login_required
+def admin_prazos(request):
+    return _render_admin_page(request, 'admin_deadlines.html')
+
+
+@login_required
+def admin_solicitacoes(request):
+    return _render_admin_page(request, 'admin_requests.html')
+
+
+@login_required
+def admin_categorias(request):
+    return _render_admin_page(request, 'admin_categories.html')
 
 
 @login_required
