@@ -30,10 +30,9 @@
                 <i class="bi bi-clock-history" aria-hidden="true"></i>
                 <span>Prazos de retirada</span>
             </a>
-            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_solicitacoes' %}is-active{% endif %}" href="{% url 'admin_solicitacoes' %}" {% if request.resolver_match.url_name == 'admin_solicitacoes' %}aria-current="page"{% endif %}>
+            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_solicitacoes' or request.resolver_match.url_name == 'admin_detalhar_solicitacao' %}is-active{% endif %}" href="{% url 'admin_solicitacoes' %}" {% if request.resolver_match.url_name == 'admin_solicitacoes' or request.resolver_match.url_name == 'admin_detalhar_solicitacao' %}aria-current="page"{% endif %}>
                 <i class="bi bi-clipboard-check" aria-hidden="true"></i>
                 <span>Solicitações</span>
-                <small>Em breve</small>
             </a>
             <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_categorias' %}is-active{% endif %}" href="{% url 'admin_categorias' %}" {% if request.resolver_match.url_name == 'admin_categorias' %}aria-current="page"{% endif %}>
                 <i class="bi bi-tags" aria-hidden="true"></i>

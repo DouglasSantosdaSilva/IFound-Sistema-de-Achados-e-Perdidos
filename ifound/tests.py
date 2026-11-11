@@ -429,8 +429,8 @@ class AdminDashboardPagesTests(TestCase):
 		pages = (
 			('admin_dashboard', 'Total de itens cadastrados', 'ifAdminMonthlyChart'),
 			('admin_indicadores', 'ifAdminMonthlyChart', 'adminDeadlinesTitle'),
-			('admin_prazos', 'adminDeadlinesTitle', 'ifAdminMonthlyChart'),
-			('admin_solicitacoes', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
+			('admin_prazos', 'Situação do prazo', 'ifAdminMonthlyChart'),
+			('admin_solicitacoes', 'Solicitações recebidas', 'adminDeadlinesTitle'),
 			('admin_categorias', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
 		)
 
@@ -446,7 +446,7 @@ class AdminDashboardPagesTests(TestCase):
 					f'class="if-admin-nav-link is-active" href="{reverse(url_name)}"',
 				)
 
-	def test_overview_displays_current_summary_and_attention_without_charts(self):
+	def test_overview_displays_summary_cards_without_attention_or_quick_links(self):
 		today = date(2026, 10, 15)
 		item_com_prazo = Item.objects.create(
 			nome='Item próximo do prazo',
@@ -487,10 +487,11 @@ class AdminDashboardPagesTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, 'Total de itens cadastrados')
 		self.assertContains(response, 'Itens devolvidos')
-		self.assertContains(response, 'Atenção administrativa')
-		self.assertContains(response, 'Solicitações aguardando análise')
-		self.assertContains(response, 'Itens próximos do vencimento')
-		self.assertContains(response, 'Itens com prazo vencido')
+		self.assertNotContains(response, 'Atenção administrativa')
+		self.assertNotContains(response, 'Acessos rápidos')
+		self.assertNotContains(response, 'admin_solicitacoes')
+		self.assertNotContains(response, 'admin_prazos')
+		self.assertNotContains(response, 'admin_indicadores')
 		self.assertNotContains(response, 'ifAdminMonthlyChart')
 		self.assertNotContains(response, 'ifAdminRequestChart')
 		self.assertEqual(response.context['resumo'], {
@@ -500,6 +501,95 @@ class AdminDashboardPagesTests(TestCase):
 			'proximos_vencimento': 1,
 			'itens_vencidos': 1,
 		})
+
+	def test_admin_requests_list_and_detail_use_real_request_records(self):
+		item = Item.objects.create(
+			nome='Mochila azul',
+			descricao='Com distintivo',
+			local='Biblioteca',
+			data_registro=date(2026, 10, 10),
+			status='achei',
+			usuario=self.admin,
+		)
+		solicitante = User.objects.create_user(
+			username='solicitante',
+			first_name='Ana',
+			last_name='Silva',
+			password='test-password',
+		)
+		solicitacao = Solicitacao.objects.create(
+			item=item,
+			solicitante=solicitante,
+			foto_comprovante='comprovantes/prova.jpg',
+			status='em_analise',
+		)
+
+		list_response = self.client.get(reverse('admin_solicitacoes'))
+		detail_response = self.client.get(
+			reverse('admin_detalhar_solicitacao', args=[solicitacao.id])
+		)
+
+		self.assertContains(list_response, 'Ana Silva')
+		self.assertContains(list_response, 'Mochila azul')
+		self.assertContains(list_response, 'Em análise')
+		self.assertContains(list_response, 'Visualizar comprovante')
+		self.assertContains(list_response, reverse('admin_detalhar_solicitacao', args=[solicitacao.id]))
+		self.assertContains(detail_response, 'Biblioteca')
+		self.assertContains(detail_response, 'Comprovante enviado')
+		self.assertContains(detail_response, 'comprovantes/prova.jpg')
+		self.assertContains(detail_response, 'Em análise')
+		self.assertContains(
+			detail_response,
+			f'class="if-admin-nav-link is-active" href="{reverse("admin_solicitacoes")}"',
+		)
+
+	def test_admin_deadlines_show_real_dates_and_existing_classifications(self):
+		today = date(2026, 10, 15)
+		near_due_item = Item.objects.create(
+			nome='Chaves',
+			descricao='Chaves encontradas',
+			local='Recepção',
+			data_registro=today,
+			data_encontrado=today - timedelta(days=12),
+			status='achei',
+			categoria='acessorios',
+			usuario=self.admin,
+		)
+		expired_item = Item.objects.create(
+			nome='Caderno',
+			descricao='Caderno encontrado',
+			local='Sala 1',
+			data_registro=today,
+			data_encontrado=today - timedelta(days=16),
+			status='achei',
+			usuario=self.admin,
+		)
+		missing_date_item = Item.objects.create(
+			nome='Guarda-chuva',
+			descricao='Sem data de achado',
+			local='Pátio',
+			data_registro=today,
+			status='achei',
+			usuario=self.admin,
+		)
+
+		with patch('ifound.views.timezone.localdate', return_value=today):
+			response = self.client.get(reverse('admin_prazos'))
+
+		self.assertContains(response, 'Chaves')
+		self.assertContains(response, 'Acessórios')
+		self.assertContains(response, '18/10/2026')
+		self.assertContains(response, 'Próximo do vencimento')
+		self.assertContains(response, 'Caderno')
+		self.assertContains(response, 'Vencido')
+		self.assertContains(response, 'Guarda-chuva')
+		self.assertContains(response, 'Data não informada')
+		prazos_por_item = {prazo['item'].id: prazo for prazo in response.context['prazos']}
+		self.assertEqual(prazos_por_item[near_due_item.id]['data_limite'], today + timedelta(days=3))
+		self.assertEqual(prazos_por_item[near_due_item.id]['classificacao'], 'proximo_vencimento')
+		self.assertEqual(prazos_por_item[expired_item.id]['classificacao'], 'vencido')
+		self.assertIsNone(prazos_por_item[missing_date_item.id]['data_limite'])
+		self.assertEqual(prazos_por_item[missing_date_item.id]['classificacao'], 'data_nao_informada')
 
 	def test_each_admin_page_keeps_the_existing_permission_requirement(self):
 		user = User.objects.create_user(username='regular-user', password='test-password')
@@ -511,9 +601,13 @@ class AdminDashboardPagesTests(TestCase):
 			'admin_prazos',
 			'admin_solicitacoes',
 			'admin_categorias',
+			'admin_detalhar_solicitacao',
 		):
 			with self.subTest(page=url_name):
-				response = self.client.get(reverse(url_name))
+				if url_name == 'admin_detalhar_solicitacao':
+					response = self.client.get(reverse(url_name, args=[1]))
+				else:
+					response = self.client.get(reverse(url_name))
 				self.assertEqual(response.status_code, 403)
 
 

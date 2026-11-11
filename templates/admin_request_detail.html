@@ -1,0 +1,69 @@
+{% extends 'base_admin.html' %}
+
+{% block admin_document_title %}Analisar solicitação{% endblock %}
+{% block admin_heading %}Analisar solicitação{% endblock %}
+{% block admin_description %}Confira os dados enviados pelo solicitante e o comprovante anexado.{% endblock %}
+{% block admin_badge %}Solicitação #{{ solicitacao.id|stringformat:"04d" }}{% endblock %}
+
+{% block admin_page_content %}
+<section class="if-admin-section" aria-labelledby="adminRequestDetailTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">DETALHES DO PEDIDO</p>
+            <h2 id="adminRequestDetailTitle">{{ solicitacao.item.nome }}</h2>
+        </div>
+        <span class="if-admin-status is-{{ solicitacao.status }}">{{ solicitacao.get_status_display }}</span>
+    </div>
+
+    <div class="if-admin-request-details">
+        <article class="if-admin-panel-card if-admin-request-info">
+            <div>
+                <span>Solicitante</span>
+                <strong>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</strong>
+            </div>
+            <div>
+                <span>Item relacionado</span>
+                <strong>{{ solicitacao.item.nome }}</strong>
+            </div>
+            <div>
+                <span>Data da solicitação</span>
+                <strong>{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</strong>
+            </div>
+            <div>
+                <span>Local informado para o item</span>
+                <strong>{{ solicitacao.item.local }}</strong>
+            </div>
+            <div>
+                <span>Descrição do item</span>
+                <p>{{ solicitacao.item.descricao }}</p>
+            </div>
+        </article>
+
+        <article class="if-admin-panel-card if-admin-proof-card">
+            <header class="if-admin-panel-heading">
+                <div>
+                    <h3>Comprovante enviado</h3>
+                    <p>Imagem anexada à solicitação</p>
+                </div>
+                <i class="bi bi-image" aria-hidden="true"></i>
+            </header>
+            {% if solicitacao.foto_comprovante %}
+                <a href="{{ solicitacao.foto_comprovante.url }}" target="_blank" rel="noopener">
+                    <img src="{{ solicitacao.foto_comprovante.url }}" alt="Comprovante enviado por {{ solicitacao.solicitante.username }}">
+                </a>
+            {% else %}
+                <div class="if-admin-empty-state">
+                    <i class="bi bi-image" aria-hidden="true"></i>
+                    <strong>Nenhum comprovante disponível</strong>
+                </div>
+            {% endif %}
+        </article>
+    </div>
+
+    <div class="if-admin-request-back">
+        <a class="if-admin-detail-link" href="{% url 'admin_solicitacoes' %}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para solicitações
+        </a>
+    </div>
+</section>
+{% endblock %}

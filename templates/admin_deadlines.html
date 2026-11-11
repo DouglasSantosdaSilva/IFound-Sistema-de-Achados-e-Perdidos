@@ -12,7 +12,7 @@
             <p class="if-admin-section-kicker">ACOMPANHAMENTO DE ITENS</p>
             <h2 id="adminDeadlinesTitle">Prazos de retirada</h2>
         </div>
-        <span class="if-admin-section-caption">Tabela preparada para integração futura</span>
+        <span class="if-admin-section-caption">Prazos calculados a partir da data efetiva do achado</span>
     </div>
 
     <div class="if-admin-panel-card if-admin-table-card">
@@ -21,7 +21,7 @@
                 <h3>Itens encontrados</h3>
                 <p>Itens aguardando retirada e seus respectivos prazos.</p>
             </div>
-            <span class="if-admin-table-placeholder-label"><i class="bi bi-database" aria-hidden="true"></i> Sem dados conectados</span>
+            <span class="if-admin-table-placeholder-label"><i class="bi bi-database" aria-hidden="true"></i> {{ prazos|length }} item(ns)</span>
         </div>
         <div class="if-admin-table-scroll">
             <table class="if-admin-table">
@@ -35,15 +35,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td colspan="5">
-                            <div class="if-admin-empty-state">
-                                <i class="bi bi-inboxes" aria-hidden="true"></i>
-                                <strong>Nenhum dado exibido nesta prévia</strong>
-                                <span>A tabela será preenchida quando a integração administrativa for implementada.</span>
-                            </div>
-                        </td>
-                    </tr>
+                    {% for prazo in prazos %}
+                        <tr>
+                            <td>{{ prazo.item.nome }}</td>
+                            <td>{{ prazo.item.get_categoria_display|default:"Não informada" }}</td>
+                            <td>{{ prazo.item.data_encontrado|date:"d/m/Y"|default:"Não informada" }}</td>
+                            <td>{{ prazo.data_limite|date:"d/m/Y"|default:"Não disponível" }}</td>
+                            <td><span class="if-admin-status is-{{ prazo.classificacao }}">{{ prazo.classificacao_label }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td class="if-admin-empty-cell" colspan="5">
+                                <div class="if-admin-empty-state">
+                                    <i class="bi bi-inboxes" aria-hidden="true"></i>
+                                    <strong>Nenhum item encontrado cadastrado</strong>
+                                    <span>Os itens encontrados serão listados aqui para acompanhamento.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

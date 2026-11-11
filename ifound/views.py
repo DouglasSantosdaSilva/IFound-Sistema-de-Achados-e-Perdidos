@@ -472,12 +472,56 @@ def admin_indicadores(request):
 
 @login_required
 def admin_prazos(request):
-    return _render_admin_page(request, 'admin_deadlines.html')
+    return _render_admin_page(request, 'admin_deadlines.html', _get_admin_deadlines_context)
 
 
 @login_required
 def admin_solicitacoes(request):
-    return _render_admin_page(request, 'admin_requests.html')
+    return _render_admin_page(request, 'admin_requests.html', _get_admin_requests_context)
+
+
+def _get_admin_deadlines_context():
+    hoje = timezone.localdate()
+    itens = Item.objects.filter(status='achei').order_by('-data_encontrado', '-criado_em')
+    classificacoes = {
+        'aguardando_retirada': 'Aguardando retirada',
+        'proximo_vencimento': 'Próximo do vencimento',
+        'vencido': 'Vencido',
+        'data_nao_informada': 'Data não informada',
+    }
+    prazos = []
+
+    for item in itens:
+        prazo = calcular_prazo_retirada(item, hoje=hoje)
+        prazos.append({
+            'item': item,
+            'data_limite': prazo.data_limite,
+            'dias_restantes': prazo.dias_restantes,
+            'classificacao': prazo.classificacao,
+            'classificacao_label': classificacoes[prazo.classificacao],
+        })
+
+    return {'prazos': prazos}
+
+
+def _get_admin_requests_context():
+    solicitacoes = Solicitacao.objects.select_related(
+        'item',
+        'solicitante',
+    ).order_by('-data_solicitacao')
+    return {'solicitacoes': solicitacoes}
+
+
+@login_required
+def admin_detalhar_solicitacao(request, id):
+    if not _has_admin_dashboard_access(request.user):
+        return HttpResponseForbidden('Você não tem permissão para acessar esta página.')
+
+    solicitacao = get_object_or_404(
+        Solicitacao.objects.select_related('item', 'solicitante'),
+        id=id,
+    )
+    return render(request, 'admin_request_detail.html', {'solicitacao': solicitacao})
 
 
 @login_required
