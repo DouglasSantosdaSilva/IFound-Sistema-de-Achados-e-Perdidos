@@ -246,6 +246,12 @@ a.if-admin-nav-link:hover {
     gap: 14px;
 }
 
+.if-admin-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
 .if-admin-metric-card,
 .if-admin-panel-card {
     border: 1px solid #edf0f4;
@@ -514,6 +520,97 @@ a.if-admin-nav-link:hover {
     margin-top: 2px;
 }
 
+.if-admin-attention-card {
+    padding: 2px 19px;
+}
+
+.if-admin-attention-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.if-admin-attention-list > li {
+    display: flex;
+    min-height: 76px;
+    align-items: center;
+    gap: 13px;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.if-admin-attention-list > li:last-child {
+    border-bottom: 0;
+}
+
+.if-admin-attention-copy {
+    display: grid;
+    flex: 1;
+    gap: 4px;
+}
+
+.if-admin-attention-copy strong,
+.if-admin-shortcut-card strong {
+    color: #374357;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.if-admin-attention-copy small,
+.if-admin-shortcut-card small {
+    color: #8b95a5;
+    font-size: 10px;
+}
+
+.if-admin-attention-list > li > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--if-admin-primary);
+    font-size: 10px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.if-admin-attention-list > li > a:hover {
+    color: var(--if-admin-primary-dark);
+}
+
+.if-admin-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.if-admin-shortcut-card {
+    display: flex;
+    min-width: 0;
+    min-height: 82px;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid #edf0f4;
+    border-radius: 14px;
+    background: var(--if-admin-surface);
+    box-shadow: var(--if-admin-shadow);
+    transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.if-admin-shortcut-card:hover {
+    transform: translateY(-1px);
+    border-color: #d9e7f7;
+}
+
+.if-admin-shortcut-card > span:nth-child(2) {
+    display: grid;
+    flex: 1;
+    gap: 4px;
+}
+
+.if-admin-shortcut-card > i {
+    color: #9aa4b2;
+    font-size: 14px;
+}
+
 .if-admin-table-toolbar {
     padding: 17px 19px 15px;
 }
@@ -586,6 +683,10 @@ a.if-admin-nav-link:hover {
 @media (max-width: 1180px) {
     .if-admin-metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .if-admin-overview-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
@@ -660,7 +761,12 @@ a.if-admin-nav-link:hover {
     }
 
     .if-admin-metrics-grid,
+    .if-admin-overview-grid,
     .if-admin-charts-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .if-admin-shortcuts {
         grid-template-columns: minmax(0, 1fr);
     }
 

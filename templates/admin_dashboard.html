@@ -3,7 +3,120 @@
 {% block admin_document_title %}Visão geral administrativa{% endblock %}
 {% block admin_heading %}Dashboard Administrativo{% endblock %}
 {% block admin_description %}Visão geral dos itens, solicitações e prazos de retirada.{% endblock %}
+{% block admin_badge %}Resumo do sistema{% endblock %}
 
 {% block admin_page_content %}
-{% include 'admin/_metrics.html' %}
+<section class="if-admin-section" aria-labelledby="adminOverviewSummaryTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">PANORAMA ATUAL</p>
+            <h2 id="adminOverviewSummaryTitle">Resumo administrativo</h2>
+        </div>
+        <span class="if-admin-section-caption">Dados atuais do sistema</span>
+    </div>
+
+    <div class="if-admin-overview-grid">
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-blue"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Total de itens cadastrados</span>
+            <strong class="if-admin-metric-value">{{ resumo.total_itens }}</strong>
+            <span class="if-admin-metric-note">Todos os itens registrados no sistema</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Solicitações aguardando análise</span>
+            <strong class="if-admin-metric-value">{{ resumo.solicitacoes_em_analise }}</strong>
+            <span class="if-admin-metric-note">Solicitações com status em análise</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-green"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Próximos do vencimento</span>
+            <strong class="if-admin-metric-value">{{ resumo.proximos_vencimento }}</strong>
+            <span class="if-admin-metric-note">Prazo termina em até 3 dias</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-amber"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Itens com prazo vencido</span>
+            <strong class="if-admin-metric-value">{{ resumo.itens_vencidos }}</strong>
+            <span class="if-admin-metric-note">Prazo de retirada ultrapassado</span>
+        </article>
+        <article class="if-admin-metric-card">
+            <span class="if-admin-metric-icon is-blue"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+            <span class="if-admin-metric-label">Itens devolvidos</span>
+            <strong class="if-admin-metric-value">{{ resumo.itens_devolvidos }}</strong>
+            <span class="if-admin-metric-note">Itens registrados como devolvidos</span>
+        </article>
+    </div>
+</section>
+
+<section class="if-admin-section" aria-labelledby="adminAttentionTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">ACOMPANHAMENTO</p>
+            <h2 id="adminAttentionTitle">Atenção administrativa</h2>
+        </div>
+        <span class="if-admin-section-caption">Pendências que podem exigir acompanhamento</span>
+    </div>
+
+    <div class="if-admin-panel-card if-admin-attention-card">
+        {% if resumo.solicitacoes_em_analise or resumo.proximos_vencimento or resumo.itens_vencidos %}
+            <ul class="if-admin-attention-list">
+                {% if resumo.solicitacoes_em_analise %}
+                    <li>
+                        <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+                        <span class="if-admin-attention-copy"><strong>Solicitações aguardando análise</strong><small>{{ resumo.solicitacoes_em_analise }} solicitação(ões) pendente(s)</small></span>
+                        <a href="{% url 'admin_solicitacoes' %}">Acessar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    </li>
+                {% endif %}
+                {% if resumo.proximos_vencimento %}
+                    <li>
+                        <span class="if-admin-metric-icon is-green"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                        <span class="if-admin-attention-copy"><strong>Itens próximos do vencimento</strong><small>{{ resumo.proximos_vencimento }} item(ns) com prazo terminando em até 3 dias</small></span>
+                        <a href="{% url 'admin_prazos' %}">Acessar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    </li>
+                {% endif %}
+                {% if resumo.itens_vencidos %}
+                    <li>
+                        <span class="if-admin-metric-icon is-amber"><i class="bi bi-exclamation-circle" aria-hidden="true"></i></span>
+                        <span class="if-admin-attention-copy"><strong>Itens com prazo vencido</strong><small>{{ resumo.itens_vencidos }} item(ns) aguardando acompanhamento</small></span>
+                        <a href="{% url 'admin_prazos' %}">Acessar <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+                    </li>
+                {% endif %}
+            </ul>
+        {% else %}
+            <div class="if-admin-empty-state">
+                <i class="bi bi-check-circle" aria-hidden="true"></i>
+                <strong>Nenhuma pendência administrativa identificada</strong>
+                <span>Solicitações e prazos estão sem alertas neste momento.</span>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="if-admin-section" aria-labelledby="adminQuickAccessTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">NAVEGAÇÃO</p>
+            <h2 id="adminQuickAccessTitle">Acessos rápidos</h2>
+        </div>
+    </div>
+
+    <div class="if-admin-shortcuts">
+        <a class="if-admin-shortcut-card" href="{% url 'admin_solicitacoes' %}">
+            <span class="if-admin-metric-icon is-violet"><i class="bi bi-clipboard-check" aria-hidden="true"></i></span>
+            <span><strong>Solicitações</strong><small>Ir para o gerenciamento</small></span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a class="if-admin-shortcut-card" href="{% url 'admin_prazos' %}">
+            <span class="if-admin-metric-icon is-amber"><i class="bi bi-clock-history" aria-hidden="true"></i></span>
+            <span><strong>Prazos de retirada</strong><small>Acompanhar itens encontrados</small></span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+        <a class="if-admin-shortcut-card" href="{% url 'admin_indicadores' %}">
+            <span class="if-admin-metric-icon is-blue"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+            <span><strong>Indicadores</strong><small>Ver gráficos e estatísticas</small></span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+    </div>
+</section>
 {% endblock %}

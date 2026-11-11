@@ -405,32 +405,51 @@ def _has_admin_dashboard_access(user):
     return user.is_superuser or user.has_perm('ifound.access_ifound_admin_area')
 
 
+def _get_deadline_counts(itens_encontrados, hoje):
+    classificacoes_prazo = [
+        calcular_prazo_retirada(item, hoje=hoje).classificacao
+        for item in itens_encontrados
+    ]
+    return {
+        'proximos_vencimento': classificacoes_prazo.count('proximo_vencimento'),
+        'itens_vencidos': classificacoes_prazo.count('vencido'),
+    }
+
+
 def _get_admin_dashboard_context():
     itens_encontrados = list(
         Item.objects.filter(status='achei').only('status', 'data_encontrado')
     )
     itens_perdidos = Item.objects.filter(status='perdi').count()
     solicitacoes_em_analise = Solicitacao.objects.filter(status='em_analise').count()
-
     hoje = timezone.localdate()
     graficos = _get_dashboard_chart_data(hoje)
-    classificacoes_prazo = [
-        calcular_prazo_retirada(item, hoje=hoje).classificacao
-        for item in itens_encontrados
-    ]
 
     indicadores = {
         'itens_encontrados': len(itens_encontrados),
         'itens_perdidos': itens_perdidos,
-        'proximos_vencimento': classificacoes_prazo.count('proximo_vencimento'),
-        'itens_vencidos': classificacoes_prazo.count('vencido'),
         'solicitacoes_em_analise': solicitacoes_em_analise,
+        **_get_deadline_counts(itens_encontrados, hoje),
     }
 
     return {
         'indicadores': indicadores,
         'graficos': graficos,
     }
+
+
+def _get_admin_overview_context():
+    hoje = timezone.localdate()
+    itens_encontrados = list(
+        Item.objects.filter(status='achei').only('status', 'data_encontrado')
+    )
+    resumo = {
+        'total_itens': Item.objects.count(),
+        'solicitacoes_em_analise': Solicitacao.objects.filter(status='em_analise').count(),
+        'itens_devolvidos': Item.objects.filter(status='devolvido').count(),
+        **_get_deadline_counts(itens_encontrados, hoje),
+    }
+    return {'resumo': resumo}
 
 
 def _render_admin_page(request, template_name, context_factory=None):
@@ -443,7 +462,7 @@ def _render_admin_page(request, template_name, context_factory=None):
 
 @login_required
 def admin_dashboard(request):
-    return _render_admin_page(request, 'admin_dashboard.html', _get_admin_dashboard_context)
+    return _render_admin_page(request, 'admin_dashboard.html', _get_admin_overview_context)
 
 
 @login_required

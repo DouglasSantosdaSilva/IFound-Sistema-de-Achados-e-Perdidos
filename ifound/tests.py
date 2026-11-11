@@ -368,7 +368,7 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 				return lost_items
 			self.fail(f'Filtro inesperado para Item: {filters}')
 
-		request = RequestFactory().get('/admin-dashboard/')
+		request = RequestFactory().get('/admin-dashboard/indicadores/')
 		request.user = type('AuthorizedUser', (), {
 			'is_authenticated': True,
 			'is_superuser': False,
@@ -381,7 +381,7 @@ class AdminDashboardIndicatorsTests(SimpleTestCase):
 				patch('ifound.views.timezone.localdate', return_value=today), \
 				patch('ifound.views._get_dashboard_chart_data', return_value={'sample': True}) as chart_data, \
 				patch('ifound.views.render', return_value=HttpResponse('dashboard')) as render:
-			response = views.admin_dashboard(request)
+			response = views.admin_indicadores(request)
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(item_filter.call_count, 2)
@@ -427,7 +427,7 @@ class AdminDashboardPagesTests(TestCase):
 
 	def test_admin_navigation_opens_independent_pages_with_active_link(self):
 		pages = (
-			('admin_dashboard', 'Itens encontrados e perdidos', 'ifAdminMonthlyChart'),
+			('admin_dashboard', 'Total de itens cadastrados', 'ifAdminMonthlyChart'),
 			('admin_indicadores', 'ifAdminMonthlyChart', 'adminDeadlinesTitle'),
 			('admin_prazos', 'adminDeadlinesTitle', 'ifAdminMonthlyChart'),
 			('admin_solicitacoes', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
@@ -445,6 +445,61 @@ class AdminDashboardPagesTests(TestCase):
 					response,
 					f'class="if-admin-nav-link is-active" href="{reverse(url_name)}"',
 				)
+
+	def test_overview_displays_current_summary_and_attention_without_charts(self):
+		today = date(2026, 10, 15)
+		item_com_prazo = Item.objects.create(
+			nome='Item próximo do prazo',
+			descricao='Teste',
+			local='Campus',
+			data_registro=today,
+			data_encontrado=today - timedelta(days=12),
+			status='achei',
+			usuario=self.admin,
+		)
+		Item.objects.create(
+			nome='Item vencido',
+			descricao='Teste',
+			local='Campus',
+			data_registro=today,
+			data_encontrado=today - timedelta(days=16),
+			status='achei',
+			usuario=self.admin,
+		)
+		Item.objects.create(
+			nome='Item devolvido',
+			descricao='Teste',
+			local='Campus',
+			data_registro=today,
+			status='devolvido',
+			usuario=self.admin,
+		)
+		Solicitacao.objects.create(
+			item=item_com_prazo,
+			solicitante=self.admin,
+			foto_comprovante='comprovantes/teste.jpg',
+			status='em_analise',
+		)
+
+		with patch('ifound.views.timezone.localdate', return_value=today):
+			response = self.client.get(reverse('admin_dashboard'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Total de itens cadastrados')
+		self.assertContains(response, 'Itens devolvidos')
+		self.assertContains(response, 'Atenção administrativa')
+		self.assertContains(response, 'Solicitações aguardando análise')
+		self.assertContains(response, 'Itens próximos do vencimento')
+		self.assertContains(response, 'Itens com prazo vencido')
+		self.assertNotContains(response, 'ifAdminMonthlyChart')
+		self.assertNotContains(response, 'ifAdminRequestChart')
+		self.assertEqual(response.context['resumo'], {
+			'total_itens': 3,
+			'solicitacoes_em_analise': 1,
+			'itens_devolvidos': 1,
+			'proximos_vencimento': 1,
+			'itens_vencidos': 1,
+		})
 
 	def test_each_admin_page_keeps_the_existing_permission_requirement(self):
 		user = User.objects.create_user(username='regular-user', password='test-password')
