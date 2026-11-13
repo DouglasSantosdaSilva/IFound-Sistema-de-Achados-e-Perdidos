@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}IFound - Alterar Senha{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <section class="profile-hero" style="background-image: url('{% static 'img/campus-pagina-inicial.jpg' %}');">
+        <div class="profile-hero-overlay"></div>
+        <div class="profile-hero-content">
+            <h1>Meu Perfil</h1>
+        </div>
+    </section>
+
+    <div class="profile-layout">
+        <aside class="profile-sidebar" aria-label="Menu do perfil">
+            <nav class="profile-menu">
+                <a class="profile-menu-item" href="{% url 'perfil' %}">
+                    <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+                    <span>Informações</span>
+                </a>
+                <a class="profile-menu-item" href="{% url 'meus_itens' %}">
+                    <i class="bi bi-box-seam" aria-hidden="true"></i>
+                    <span>Meus Itens</span>
+                </a>
+                <a class="profile-menu-item" href="{% url 'minhas_solicitacoes' %}">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <span>Minhas Solicitações</span>
+                </a>
+                <a class="profile-menu-item active" href="{% url 'alterar_senha' %}" aria-current="page">
+                    <i class="bi bi-lock" aria-hidden="true"></i>
+                    <span>Alterar Senha</span>
+                </a>
+                <a class="profile-menu-item" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="profile-main">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="profile-notice profile-notice-{{ message.tags }}" role="status">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            <section class="profile-information-card profile-edit-card">
+                <div class="profile-section-heading">
+                    <span class="profile-heading-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Alterar senha</h2>
+                        <p class="profile-edit-description">Informe sua senha atual e escolha uma nova senha.</p>
+                    </div>
+                </div>
+
+                <div id="passwordChangeFeedback" class="profile-notice" role="alert" hidden></div>
+
+                <form method="post" class="profile-edit-form" id="passwordChangeForm" novalidate>
+                    {% csrf_token %}
+                    <div class="profile-edit-fields">
+                        <div class="profile-form-field">
+                            <label for="current_password">Senha atual</label>
+                            <input class="profile-edit-input" id="current_password" name="current_password" type="password" autocomplete="current-password" required aria-describedby="currentPasswordError" {% if errors.current_password %}aria-invalid="true"{% endif %}>
+                            <small class="profile-field-error" id="currentPasswordError" data-field-error="current_password" {% if not errors.current_password %}hidden{% endif %}>{{ errors.current_password|join:' ' }}</small>
+                        </div>
+                        <div class="profile-form-field">
+                            <label for="new_password">Nova senha</label>
+                            <input class="profile-edit-input" id="new_password" name="new_password" type="password" autocomplete="new-password" required aria-describedby="newPasswordError" {% if errors.new_password %}aria-invalid="true"{% endif %}>
+                            <small class="profile-field-error" id="newPasswordError" data-field-error="new_password" {% if not errors.new_password %}hidden{% endif %}>{{ errors.new_password|join:' ' }}</small>
+                        </div>
+                        <div class="profile-form-field">
+                            <label for="confirm_password">Confirmar nova senha</label>
+                            <input class="profile-edit-input" id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required aria-describedby="confirmPasswordError" {% if errors.confirm_password %}aria-invalid="true"{% endif %}>
+                            <small class="profile-field-error" id="confirmPasswordError" data-field-error="confirm_password" {% if not errors.confirm_password %}hidden{% endif %}>{{ errors.confirm_password|join:' ' }}</small>
+                        </div>
+                    </div>
+
+                    <div class="profile-information-actions">
+                        <a href="{% url 'perfil' %}" class="profile-cancel-button">Cancelar</a>
+                        <button type="submit" class="profile-edit-button" id="passwordChangeButton">
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span>Atualizar senha</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const form = document.getElementById('passwordChangeForm');
+        const feedback = document.getElementById('passwordChangeFeedback');
+        const submitButton = document.getElementById('passwordChangeButton');
+
+        function clearFieldErrors() {
+            form.querySelectorAll('[data-field-error]').forEach((element) => {
+                element.textContent = '';
+                element.hidden = true;
+                form.elements[element.dataset.fieldError].removeAttribute('aria-invalid');
+            });
+        }
+
+        function showFeedback(message, isError) {
+            feedback.textContent = message;
+            feedback.className = `profile-notice${isError ? ' profile-notice-error' : ''}`;
+            feedback.hidden = false;
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearFieldErrors();
+            feedback.hidden = true;
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    headers: window.getCsrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                    body: new URLSearchParams(new FormData(form))
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    Object.entries(result.errors || {}).forEach(([field, messages]) => {
+                        const errorElement = form.querySelector(`[data-field-error="${field}"]`);
+                        const input = form.elements[field];
+                        if (!errorElement || !input) return;
+                        errorElement.textContent = messages.join(' ');
+                        errorElement.hidden = false;
+                        input.setAttribute('aria-invalid', 'true');
+                    });
+                    showFeedback('Revise os campos indicados e tente novamente.', true);
+                    return;
+                }
+
+                form.reset();
+                showFeedback(result.message, false);
+            } catch {
+                showFeedback('Não foi possível alterar a senha. Tente novamente.', true);
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    })();
+</script>
+{% endblock %}

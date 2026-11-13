@@ -46,14 +46,14 @@
                     <span>Minhas Solicitações</span>
                 </a>
 
-                <span
-                    class="profile-menu-item unavailable"
-                    aria-disabled="true"
-                    title="Funcionalidade indisponível"
+                <a
+                    class="profile-menu-item {% if request.resolver_match.url_name == 'alterar_senha' %}active{% endif %}"
+                    href="{% url 'alterar_senha' %}"
+                    {% if request.resolver_match.url_name == 'alterar_senha' %}aria-current="page"{% endif %}
                 >
                     <i class="bi bi-lock"></i>
                     <span>Alterar Senha</span>
-                </span>
+                </a>
 
                 <a class="profile-menu-item" href="{% url 'logout' %}">
                     <i class="bi bi-box-arrow-right"></i>

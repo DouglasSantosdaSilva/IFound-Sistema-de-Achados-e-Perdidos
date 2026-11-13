@@ -43,6 +43,25 @@ class ProfilePhotoUploadTests(TestCase):
 		self.profile.refresh_from_db()
 		self.assertTrue(self.profile.foto.name.startswith('perfis/'))
 		self.assertEqual(response.json()['url'], self.profile.foto.url)
+		header_response = self.client.get(reverse('meus_itens'))
+		self.assertContains(header_response, 'class="navbar-profile-avatar"')
+		self.assertContains(header_response, f'src="{self.profile.foto.url}"')
+
+	def test_shared_header_uses_default_icon_without_profile_photo(self):
+		response = self.client.get(reverse('index'))
+
+		self.assertContains(response, 'id="navbarProfileIcon"')
+		self.assertContains(response, 'class="bi bi-person-circle"')
+		self.assertNotContains(response, 'navbar-profile-avatar')
+
+	def test_profile_page_uses_saved_photo_in_profile_card_and_header(self):
+		self.profile.foto.save('existing-profile.jpg', self._jpeg_upload(), save=True)
+
+		response = self.client.get(reverse('perfil'))
+
+		self.assertContains(response, 'id="profileAvatarImage"')
+		self.assertContains(response, 'id="navbarProfileAvatar"')
+		self.assertContains(response, f'src="{self.profile.foto.url}"')
 
 	def test_invalid_image_is_rejected(self):
 		upload = SimpleUploadedFile('profile.jpg', b'not an image', content_type='image/jpeg')
@@ -260,6 +279,90 @@ class EditProfileTests(TestCase):
 		response = self.client.get(reverse('editar_perfil'))
 
 		self.assertEqual(response.status_code, 302)
+
+
+class PasswordChangeTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(username='password-user', password='Current-pass-88')
+		self.client.force_login(self.user)
+		self.url = reverse('alterar_senha')
+
+	def _post_passwords(self, **passwords):
+		return self.client.post(
+			self.url,
+			passwords,
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+	def test_password_page_has_active_navigation_and_required_fields(self):
+		response = self.client.get(self.url)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, f'class="profile-menu-item active" href="{self.url}"')
+		self.assertContains(response, 'name="current_password"')
+		self.assertContains(response, 'name="new_password"')
+		self.assertContains(response, 'name="confirm_password"')
+
+	def test_password_change_requires_authentication(self):
+		self.client.logout()
+
+		response = self.client.get(self.url)
+
+		self.assertEqual(response.status_code, 302)
+
+	def test_empty_password_fields_are_rejected(self):
+		response = self._post_passwords()
+
+		self.assertEqual(response.status_code, 400)
+		self.assertEqual(set(response.json()['errors']), {'current_password', 'new_password', 'confirm_password'})
+
+	def test_incorrect_current_password_does_not_change_password(self):
+		response = self._post_passwords(
+			current_password='wrong-password',
+			new_password='New-safe-pass-99',
+			confirm_password='New-safe-pass-99',
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertIn('current_password', response.json()['errors'])
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.check_password('Current-pass-88'))
+
+	def test_mismatched_confirmation_is_rejected(self):
+		response = self._post_passwords(
+			current_password='Current-pass-88',
+			new_password='New-safe-pass-99',
+			confirm_password='Different-pass-99',
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertIn('confirm_password', response.json()['errors'])
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.check_password('Current-pass-88'))
+
+	def test_django_password_validators_are_applied(self):
+		response = self._post_passwords(
+			current_password='Current-pass-88',
+			new_password='12345678',
+			confirm_password='12345678',
+		)
+
+		self.assertEqual(response.status_code, 400)
+		self.assertIn('new_password', response.json()['errors'])
+
+	def test_success_changes_password_and_keeps_session_authenticated(self):
+		response = self._post_passwords(
+			current_password='Current-pass-88',
+			new_password='New-safe-pass-99',
+			confirm_password='New-safe-pass-99',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()['success'])
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.check_password('New-safe-pass-99'))
+		self.assertEqual(self.client.session['_auth_user_id'], str(self.user.pk))
+		self.assertEqual(self.client.get(reverse('perfil')).status_code, 200)
 
 
 class ItemDeadlineTests(SimpleTestCase):

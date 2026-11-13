@@ -5,7 +5,8 @@ from datetime import datetime
 from PIL import Image, UnidentifiedImageError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Count
@@ -317,6 +318,51 @@ def perfil_view(request):
         'perfil.html',
         {'perfil': perfil}
     )
+
+
+@login_required
+def alterar_senha(request):
+    if request.method == 'POST':
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        errors = {}
+
+        if not current_password:
+            errors['current_password'] = ['Informe sua senha atual.']
+        elif not request.user.check_password(current_password):
+            errors['current_password'] = ['A senha atual está incorreta.']
+
+        if not new_password:
+            errors['new_password'] = ['Informe a nova senha.']
+        else:
+            try:
+                validate_password(new_password, user=request.user)
+            except ValidationError as error:
+                errors['new_password'] = error.messages
+
+        if not confirm_password:
+            errors['confirm_password'] = ['Confirme a nova senha.']
+        elif new_password != confirm_password:
+            errors['confirm_password'] = ['A confirmação não corresponde à nova senha.']
+
+        if errors:
+            if is_ajax:
+                return JsonResponse({'success': False, 'errors': errors}, status=400)
+            return render(request, 'alterar_senha.html', {'errors': errors}, status=400)
+
+        request.user.set_password(new_password)
+        request.user.save(update_fields=['password'])
+        update_session_auth_hash(request, request.user)
+
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': 'Senha alterada com sucesso.'})
+
+        messages.success(request, 'Senha alterada com sucesso.')
+        return redirect('alterar_senha')
+
+    return render(request, 'alterar_senha.html', {'errors': {}})
 
 
 @login_required

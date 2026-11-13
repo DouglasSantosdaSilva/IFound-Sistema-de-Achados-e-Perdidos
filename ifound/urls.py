@@ -14,6 +14,7 @@ urlpatterns = [
 
     path('perfil/', views.perfil_view, name='perfil'),
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
+    path('perfil/alterar-senha/', views.alterar_senha, name='alterar_senha'),
 
     path('', views.index, name='index'),
     path('catalogo/', views.catalogo, name='catalogo'),
