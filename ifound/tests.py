@@ -431,7 +431,6 @@ class AdminDashboardPagesTests(TestCase):
 			('admin_indicadores', 'ifAdminMonthlyChart', 'adminDeadlinesTitle'),
 			('admin_prazos', 'Situação do prazo', 'ifAdminMonthlyChart'),
 			('admin_solicitacoes', 'Solicitações recebidas', 'adminDeadlinesTitle'),
-			('admin_categorias', 'Esta área ainda não possui funcionalidades implementadas', 'adminDeadlinesTitle'),
 		)
 
 		for url_name, included_content, excluded_content in pages:
@@ -445,6 +444,12 @@ class AdminDashboardPagesTests(TestCase):
 					response,
 					f'class="if-admin-nav-link is-active" href="{reverse(url_name)}"',
 				)
+				self.assertNotContains(response, 'Categorias')
+
+	def test_admin_categories_page_is_no_longer_routed(self):
+		response = self.client.get('/admin-dashboard/categorias/')
+
+		self.assertEqual(response.status_code, 404)
 
 	def test_overview_displays_summary_cards_without_attention_or_quick_links(self):
 		today = date(2026, 10, 15)
@@ -600,7 +605,6 @@ class AdminDashboardPagesTests(TestCase):
 			'admin_indicadores',
 			'admin_prazos',
 			'admin_solicitacoes',
-			'admin_categorias',
 			'admin_detalhar_solicitacao',
 		):
 			with self.subTest(page=url_name):

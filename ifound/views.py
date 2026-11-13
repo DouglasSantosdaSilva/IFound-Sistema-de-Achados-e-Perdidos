@@ -525,11 +525,6 @@ def admin_detalhar_solicitacao(request, id):
 
 
 @login_required
-def admin_categorias(request):
-    return _render_admin_page(request, 'admin_categories.html')
-
-
-@login_required
 def verificar_solicitacao_item(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     solicitacao = Solicitacao.objects.filter(

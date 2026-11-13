@@ -31,11 +31,6 @@
                 <i class="bi bi-clipboard-check" aria-hidden="true"></i>
                 <span>Solicitações</span>
             </a>
-            <a class="if-admin-nav-link {% if request.resolver_match.url_name == 'admin_categorias' %}is-active{% endif %}" href="{% url 'admin_categorias' %}" {% if request.resolver_match.url_name == 'admin_categorias' %}aria-current="page"{% endif %}>
-                <i class="bi bi-tags" aria-hidden="true"></i>
-                <span>Categorias</span>
-                <small>Em breve</small>
-            </a>
         </nav>
 
         <div class="if-admin-sidebar-footer">
