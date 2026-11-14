@@ -169,6 +169,16 @@ button {
     transition: var(--transition);
     margin-left: 8px;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+.navbar-profile-avatar {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
 }
 
 .navbar-profile-btn:hover {

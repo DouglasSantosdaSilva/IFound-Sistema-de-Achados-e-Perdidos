@@ -149,7 +149,23 @@
                     avatar.querySelector('.bi-person-fill')?.remove();
                     avatar.prepend(avatarImage);
                 }
-                avatarImage.src = result.url;
+                const photoUrl = new URL(result.url, window.location.href);
+                photoUrl.searchParams.set('v', Date.now().toString());
+                avatarImage.src = photoUrl.toString();
+
+                const headerButton = document.getElementById('navbarProfileButton');
+                if (headerButton) {
+                    let headerAvatar = document.getElementById('navbarProfileAvatar');
+                    if (!headerAvatar) {
+                        headerAvatar = document.createElement('img');
+                        headerAvatar.id = 'navbarProfileAvatar';
+                        headerAvatar.className = 'navbar-profile-avatar';
+                        headerAvatar.alt = 'Foto do perfil';
+                        document.getElementById('navbarProfileIcon')?.remove();
+                        headerButton.prepend(headerAvatar);
+                    }
+                    headerAvatar.src = photoUrl.toString();
+                }
                 window.alert(result.message);
             } catch {
                 window.alert(errorMessage);
