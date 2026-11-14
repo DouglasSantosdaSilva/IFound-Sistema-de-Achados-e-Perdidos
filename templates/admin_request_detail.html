@@ -12,7 +12,7 @@
             <p class="if-admin-section-kicker">DETALHES DO PEDIDO</p>
             <h2 id="adminRequestDetailTitle">{{ solicitacao.item.nome }}</h2>
         </div>
-        <span class="if-admin-status is-{{ solicitacao.status }}">{{ solicitacao.get_status_display }}</span>
+        <span class="if-admin-status is-{{ solicitacao.status }}" id="adminRequestStatus">{{ solicitacao.get_status_display }}</span>
     </div>
 
     <div class="if-admin-request-details">
@@ -31,7 +31,19 @@
             </div>
             <div>
                 <span>Local informado para o item</span>
-                <strong>{{ solicitacao.item.local }}</strong>
+                <strong>{{ solicitacao.item.local|default:"Não informado" }}</strong>
+            </div>
+            <div>
+                <span>Categoria</span>
+                <strong>{{ solicitacao.item.get_categoria_display|default:"Não informada" }}</strong>
+            </div>
+            <div>
+                <span>Data do achado</span>
+                <strong>{{ solicitacao.item.data_encontrado|date:"d/m/Y"|default:"Não informada" }}</strong>
+            </div>
+            <div>
+                <span>Situação atual</span>
+                <strong id="adminRequestStatusDetail">{{ solicitacao.get_status_display }}</strong>
             </div>
             <div>
                 <span>Descrição do item</span>
@@ -60,10 +72,135 @@
         </article>
     </div>
 
+    {% if solicitacao.motivo_recusa %}
+        <article class="if-admin-panel-card if-admin-request-outcome" id="adminRequestOutcome">
+            <strong id="adminRequestOutcomeHeading">Motivo da recusa</strong>
+            <p id="adminRequestOutcomeText">{{ solicitacao.motivo_recusa }}</p>
+        </article>
+    {% else %}
+        <article class="if-admin-panel-card if-admin-request-outcome" id="adminRequestOutcome" hidden>
+            <strong id="adminRequestOutcomeHeading"></strong>
+            <p id="adminRequestOutcomeText"></p>
+        </article>
+    {% endif %}
+
+    {% if solicitacao.data_entrega %}
+        <p id="adminDeliveryDate">Entrega confirmada em {{ solicitacao.data_entrega|date:"d/m/Y H:i" }}.</p>
+    {% else %}
+        <p id="adminDeliveryDate" hidden></p>
+    {% endif %}
+
+    {% if solicitacao.status == 'em_analise' or solicitacao.status == 'aprovada' %}
+        <section class="if-admin-panel-card if-admin-request-actions" id="adminRequestActions" aria-label="Ações administrativas">
+            <form id="adminRequestActionForm" data-action-url="{% url 'admin_atualizar_solicitacao' solicitacao.id %}">
+                {% csrf_token %}
+                {% if solicitacao.status == 'em_analise' %}
+                    <div id="adminDecisionActions">
+                        <label for="adminRejectionReason">Motivo da recusa (obrigatório para recusar)</label>
+                        <textarea id="adminRejectionReason" name="motivo_recusa" maxlength="1000" rows="3"></textarea>
+                        <div class="request-actions">
+                            <button type="button" class="btn btn-primary" data-request-action="aprovar">Aprovar solicitação</button>
+                            <button type="button" class="btn btn-secondary" data-request-action="recusar">Recusar solicitação</button>
+                        </div>
+                    </div>
+                    <div id="adminDeliveryActions" hidden>
+                        <p>A solicitação foi aprovada. Confirme a entrega somente após a retirada presencial do item.</p>
+                        <button type="button" class="btn btn-primary" data-request-action="confirmar_entrega">Confirmar entrega</button>
+                    </div>
+                {% else %}
+                    <div id="adminDecisionActions" hidden></div>
+                    <div id="adminDeliveryActions">
+                        <p>A solicitação foi aprovada. Confirme a entrega somente após a retirada presencial do item.</p>
+                        <button type="button" class="btn btn-primary" data-request-action="confirmar_entrega">Confirmar entrega</button>
+                    </div>
+                {% endif %}
+            </form>
+        </section>
+    {% endif %}
+
     <div class="if-admin-request-back">
         <a class="if-admin-detail-link" href="{% url 'admin_solicitacoes' %}">
             <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para solicitações
         </a>
     </div>
 </section>
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+<script>
+    (() => {
+        const form = document.getElementById('adminRequestActionForm');
+        if (!form) return;
+
+        const statusBadge = document.getElementById('adminRequestStatus');
+        const statusDetail = document.getElementById('adminRequestStatusDetail');
+        const decisionActions = document.getElementById('adminDecisionActions');
+        const deliveryActions = document.getElementById('adminDeliveryActions');
+        const outcome = document.getElementById('adminRequestOutcome');
+        const outcomeHeading = document.getElementById('adminRequestOutcomeHeading');
+        const outcomeText = document.getElementById('adminRequestOutcomeText');
+        const deliveryDate = document.getElementById('adminDeliveryDate');
+        const toastContainer = document.getElementById('toast-container');
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            toastContainer.append(toast);
+            window.setTimeout(() => toast.remove(), 4000);
+        }
+
+        document.querySelectorAll('[data-request-action]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const action = button.dataset.requestAction;
+                const formData = new URLSearchParams({ action });
+                if (action === 'recusar') {
+                    formData.set('motivo_recusa', document.getElementById('adminRejectionReason').value);
+                }
+
+                const buttons = form.querySelectorAll('button');
+                buttons.forEach((actionButton) => { actionButton.disabled = true; });
+                try {
+                    const response = await fetch(form.dataset.actionUrl, {
+                        method: 'POST',
+                        headers: getCsrfHeaders({
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                        }),
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || 'Não foi possível atualizar a solicitação.');
+                    }
+
+                    statusBadge.textContent = result.status_label;
+                    statusBadge.className = `if-admin-status is-${result.status}`;
+                    statusDetail.textContent = result.status_label;
+                    if (result.status === 'aprovada') {
+                        decisionActions.hidden = true;
+                        deliveryActions.hidden = false;
+                    } else {
+                        form.remove();
+                    }
+                    if (result.status === 'recusada') {
+                        outcome.hidden = false;
+                        outcomeHeading.textContent = 'Motivo da recusa';
+                        outcomeText.textContent = document.getElementById('adminRejectionReason').value.trim();
+                    }
+                    if (result.status === 'entregue' && result.data_entrega) {
+                        const deliveredAt = new Date(result.data_entrega);
+                        deliveryDate.textContent = `Entrega confirmada em ${new Intl.DateTimeFormat('pt-BR', {
+                            dateStyle: 'short',
+                            timeStyle: 'short'
+                        }).format(deliveredAt)}.`;
+                        deliveryDate.hidden = false;
+                    }
+                    showToast(result.message, 'success');
+                } catch (error) {
+                    showToast(error.message || 'Não foi possível conectar ao servidor.', 'error');
+                } finally {
+                    buttons.forEach((actionButton) => { actionButton.disabled = false; });
+                }
+            });
+        });
+    })();
+</script>
 {% endblock %}

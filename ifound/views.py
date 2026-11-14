@@ -9,7 +9,7 @@ from django.contrib.auth import login, logout, authenticate, update_session_auth
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Count
+from django.db.models import Count, F
 from django.core.files.images import ImageFile
 from django.core.paginator import Paginator
 from django.core.exceptions import ValidationError
@@ -17,7 +17,7 @@ from django.core.validators import validate_email
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
-from django.db import transaction
+from django.db import connection, transaction
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse
 
@@ -555,7 +555,20 @@ def _get_admin_requests_context():
         'item',
         'solicitante',
     ).order_by('-data_solicitacao')
-    return {'solicitacoes': solicitacoes}
+    status_counts = {
+        row['status']: row['total']
+        for row in Solicitacao.objects.values('status').annotate(total=Count('id'))
+    }
+    return {
+        'solicitacoes': solicitacoes,
+        'status_filters': [
+            ('todas', 'Todas', solicitacoes.count()),
+            *[
+                (status, label, status_counts.get(status, 0))
+                for status, label in Solicitacao.STATUS_CHOICES
+            ],
+        ],
+    }
 
 
 @login_required
@@ -568,6 +581,112 @@ def admin_detalhar_solicitacao(request, id):
         id=id,
     )
     return render(request, 'admin_request_detail.html', {'solicitacao': solicitacao})
+
+
+@login_required
+def admin_atualizar_solicitacao(request, id):
+    if not _has_admin_dashboard_access(request.user):
+        return JsonResponse(
+            {'success': False, 'message': 'Você não tem permissão para alterar solicitações.'},
+            status=403,
+        )
+    if request.method != 'POST':
+        return JsonResponse(
+            {'success': False, 'message': 'Método não permitido.'},
+            status=405,
+        )
+
+    action = request.POST.get('action', '')
+    motivo_recusa = request.POST.get('motivo_recusa', '').strip()
+    if action not in {'aprovar', 'recusar', 'confirmar_entrega'}:
+        return JsonResponse(
+            {'success': False, 'message': 'Ação inválida.'},
+            status=400,
+        )
+    if action == 'recusar' and not motivo_recusa:
+        return JsonResponse(
+            {'success': False, 'message': 'Informe o motivo da recusa.'},
+            status=400,
+        )
+    if action == 'recusar' and len(motivo_recusa) > 1000:
+        return JsonResponse(
+            {'success': False, 'message': 'O motivo da recusa deve ter até 1000 caracteres.'},
+            status=400,
+        )
+
+    item_id = Solicitacao.objects.filter(pk=id).values_list('item_id', flat=True).first()
+    if item_id is None:
+        return JsonResponse(
+            {'success': False, 'message': 'Solicitação não encontrada.'},
+            status=404,
+        )
+    with transaction.atomic():
+        if connection.vendor == 'sqlite':
+            # SQLite ignores select_for_update, so acquire its write lock before checking conflicts.
+            Item.objects.filter(pk=item_id).update(status=F('status'))
+        item = Item.objects.select_for_update().filter(pk=item_id).first()
+        solicitacao = Solicitacao.objects.select_for_update().filter(pk=id).first()
+        if item is None or solicitacao is None:
+            return JsonResponse(
+                {'success': False, 'message': 'A solicitação ou o item relacionado não foi encontrado.'},
+                status=404,
+            )
+
+        if action in {'aprovar', 'recusar'} and solicitacao.status != 'em_analise':
+            return JsonResponse(
+                {'success': False, 'message': 'Somente solicitações em análise podem ser decididas.'},
+                status=409,
+            )
+
+        if action == 'aprovar':
+            if item.status != 'achei':
+                return JsonResponse(
+                    {'success': False, 'message': 'Este item não está mais disponível para retirada.'},
+                    status=409,
+                )
+            if Solicitacao.objects.filter(
+                item_id=item_id,
+                status__in=('aprovada', 'entregue'),
+            ).exclude(pk=solicitacao.pk).exists():
+                return JsonResponse(
+                    {'success': False, 'message': 'Já existe outra solicitação aprovada para este item.'},
+                    status=409,
+                )
+            solicitacao.status = 'aprovada'
+            solicitacao.save(update_fields=['status'])
+            message = 'Solicitação aprovada. Aguardando a retirada presencial do item.'
+
+        elif action == 'recusar':
+            solicitacao.status = 'recusada'
+            solicitacao.motivo_recusa = motivo_recusa
+            solicitacao.save(update_fields=['status', 'motivo_recusa'])
+            message = 'Solicitação recusada e motivo registrado.'
+
+        else:
+            if solicitacao.status != 'aprovada':
+                return JsonResponse(
+                    {'success': False, 'message': 'Somente solicitações aprovadas podem ter a entrega confirmada.'},
+                    status=409,
+                )
+            if item.status != 'achei':
+                return JsonResponse(
+                    {'success': False, 'message': 'Este item não está disponível para confirmação de entrega.'},
+                    status=409,
+                )
+            solicitacao.status = 'entregue'
+            solicitacao.data_entrega = timezone.now()
+            solicitacao.save(update_fields=['status', 'data_entrega'])
+            item.status = 'devolvido'
+            item.save(update_fields=['status'])
+            message = 'Entrega confirmada. O item foi marcado como devolvido.'
+
+    return JsonResponse({
+        'success': True,
+        'message': message,
+        'status': solicitacao.status,
+        'status_label': solicitacao.get_status_display(),
+        'data_entrega': solicitacao.data_entrega.isoformat() if solicitacao.data_entrega else None,
+    })
 
 
 @login_required

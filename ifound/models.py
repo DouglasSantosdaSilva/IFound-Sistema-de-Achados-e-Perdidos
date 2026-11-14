@@ -54,6 +54,7 @@ class Solicitacao(models.Model):
         ('em_analise', 'Em análise'),
         ('aprovada', 'Aprovada'),
         ('recusada', 'Recusada'),
+        ('entregue', 'Entregue'),
     ]
 
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='solicitacoes')
@@ -61,7 +62,8 @@ class Solicitacao(models.Model):
     foto_comprovante = models.ImageField(upload_to='comprovantes/')
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='em_analise')
+    motivo_recusa = models.TextField(blank=True, max_length=1000)
+    data_entrega = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"Solicitação de {self.solicitante.username} para {self.item.nome}"
-

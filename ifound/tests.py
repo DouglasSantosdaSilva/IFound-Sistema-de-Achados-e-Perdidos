@@ -718,6 +718,197 @@ class AdminDashboardPagesTests(TestCase):
 				self.assertEqual(response.status_code, 403)
 
 
+class AdminRequestLifecycleTests(TestCase):
+	def setUp(self):
+		self.admin = User.objects.create_superuser(
+			username='request-admin',
+			email='request-admin@example.com',
+			password='test-password',
+		)
+		self.requester = User.objects.create_user(
+			username='requester',
+			password='test-password',
+		)
+		self.item = Item.objects.create(
+			nome='Carteira preta',
+			descricao='Carteira com documentos',
+			local='Biblioteca',
+			data_registro=date(2026, 11, 1),
+			data_encontrado=date(2026, 11, 1),
+			categoria='documentos',
+			status='achei',
+			usuario=self.admin,
+		)
+		self.solicitacao = Solicitacao.objects.create(
+			item=self.item,
+			solicitante=self.requester,
+			foto_comprovante='comprovantes/prova.jpg',
+		)
+		self.client.force_login(self.admin)
+		self.action_url = reverse(
+			'admin_atualizar_solicitacao',
+			args=[self.solicitacao.id],
+		)
+
+	def _post_action(self, action, **data):
+		return self.client.post(
+			self.action_url,
+			{'action': action, **data},
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+	def test_admin_lists_and_can_inspect_analysis_request_and_proof(self):
+		list_response = self.client.get(reverse('admin_solicitacoes'))
+		detail_response = self.client.get(
+			reverse('admin_detalhar_solicitacao', args=[self.solicitacao.id])
+		)
+
+		self.assertContains(list_response, 'Em análise')
+		self.assertContains(list_response, 'Todas (1)')
+		self.assertContains(detail_response, 'comprovantes/prova.jpg')
+		self.assertContains(detail_response, 'Documentos')
+		self.assertContains(detail_response, '01/11/2026')
+		self.assertContains(detail_response, 'Aprovar solicitação')
+
+	def test_approval_allows_pickup_without_marking_item_delivered(self):
+		response = self._post_action('aprovar')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()['status'], 'aprovada')
+		self.solicitacao.refresh_from_db()
+		self.item.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'aprovada')
+		self.assertIsNone(self.solicitacao.data_entrega)
+		self.assertEqual(self.item.status, 'achei')
+
+		user_client = self.client_class()
+		user_client.force_login(self.requester)
+		list_response = user_client.get(reverse('minhas_solicitacoes'))
+		detail_response = user_client.get(
+			reverse('detalhar_solicitacao', args=[self.solicitacao.id])
+		)
+		self.assertContains(list_response, 'Aprovada')
+		self.assertContains(list_response, 'a entrega ainda aguarda confirmação presencial')
+		self.assertContains(detail_response, 'Você pode comparecer para retirar o objeto.')
+
+	def test_delivery_is_explicit_and_updates_request_and_item(self):
+		self._post_action('aprovar')
+
+		response = self._post_action('confirmar_entrega')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()['status'], 'entregue')
+		self.solicitacao.refresh_from_db()
+		self.item.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'entregue')
+		self.assertIsNotNone(self.solicitacao.data_entrega)
+		self.assertEqual(self.item.status, 'devolvido')
+
+		user_client = self.client_class()
+		user_client.force_login(self.requester)
+		self.assertContains(
+			user_client.get(reverse('detalhar_solicitacao', args=[self.solicitacao.id])),
+			'Objeto entregue',
+		)
+		self.assertContains(
+			user_client.get(reverse('minhas_solicitacoes')),
+			'Entrega confirmada presencialmente.',
+		)
+
+	def test_rejection_requires_and_exposes_a_reason_to_requester(self):
+		empty_reason_response = self._post_action('recusar', motivo_recusa='  ')
+		self.assertEqual(empty_reason_response.status_code, 400)
+		self.assertEqual(self.solicitacao.status, 'em_analise')
+
+		response = self._post_action(
+			'recusar',
+			motivo_recusa='O comprovante não identifica o item.',
+		)
+
+		self.assertEqual(response.status_code, 200)
+		self.solicitacao.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'recusada')
+		self.assertEqual(self.solicitacao.motivo_recusa, 'O comprovante não identifica o item.')
+		user_client = self.client_class()
+		user_client.force_login(self.requester)
+		self.assertContains(
+			user_client.get(reverse('detalhar_solicitacao', args=[self.solicitacao.id])),
+			'O comprovante não identifica o item.',
+		)
+		self.assertContains(
+			user_client.get(reverse('minhas_solicitacoes')),
+			'Motivo: O comprovante não identifica o item.',
+		)
+
+	def test_incompatible_actions_and_second_approval_are_rejected(self):
+		self.assertEqual(self._post_action('confirmar_entrega').status_code, 409)
+		self.assertEqual(self._post_action('aprovar').status_code, 200)
+		self.assertEqual(self._post_action('aprovar').status_code, 409)
+		self.assertEqual(self._post_action('recusar', motivo_recusa='Tarde demais.').status_code, 409)
+		self.solicitacao.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'aprovada')
+		self.item.refresh_from_db()
+		self.assertEqual(self.item.status, 'achei')
+
+		self.assertEqual(self._post_action('confirmar_entrega').status_code, 200)
+		self.assertEqual(self._post_action('confirmar_entrega').status_code, 409)
+		self.assertEqual(self._post_action('aprovar').status_code, 409)
+
+	def test_another_approval_for_same_item_and_unavailable_item_are_blocked(self):
+		other_request = Solicitacao.objects.create(
+			item=self.item,
+			solicitante=User.objects.create_user(username='other-requester'),
+			foto_comprovante='comprovantes/outra-prova.jpg',
+		)
+		self.assertEqual(self._post_action('aprovar').status_code, 200)
+		other_response = self.client.post(
+			reverse('admin_atualizar_solicitacao', args=[other_request.id]),
+			{'action': 'aprovar'},
+		)
+		self.assertEqual(other_response.status_code, 409)
+		other_request.refresh_from_db()
+		self.assertEqual(other_request.status, 'em_analise')
+
+		unavailable_request = Solicitacao.objects.create(
+			item=Item.objects.create(
+				nome='Item já devolvido',
+				descricao='Indisponível',
+				local='Campus',
+				data_registro=date(2026, 11, 1),
+				status='devolvido',
+				usuario=self.admin,
+			),
+			solicitante=self.requester,
+			foto_comprovante='comprovantes/indisponivel.jpg',
+		)
+		unavailable_response = self.client.post(
+			reverse('admin_atualizar_solicitacao', args=[unavailable_request.id]),
+			{'action': 'aprovar'},
+		)
+		self.assertEqual(unavailable_response.status_code, 409)
+		unavailable_request.refresh_from_db()
+		self.assertEqual(unavailable_request.status, 'em_analise')
+
+	def test_user_without_admin_permission_cannot_change_request(self):
+		self.client.force_login(self.requester)
+
+		response = self._post_action('aprovar')
+
+		self.assertEqual(response.status_code, 403)
+		self.solicitacao.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'em_analise')
+
+	def test_admin_action_requires_csrf_token(self):
+		csrf_client = self.client_class(enforce_csrf_checks=True)
+		csrf_client.force_login(self.admin)
+
+		response = csrf_client.post(self.action_url, {'action': 'aprovar'})
+
+		self.assertEqual(response.status_code, 403)
+		self.solicitacao.refresh_from_db()
+		self.assertEqual(self.solicitacao.status, 'em_analise')
+
+
 class AdminDashboardChartDataTests(SimpleTestCase):
 	def test_monthly_chart_has_six_months_and_zeroes_for_missing_months(self):
 		from .views import _format_dashboard_chart_data
@@ -751,4 +942,4 @@ class AdminDashboardChartDataTests(SimpleTestCase):
 		requests = chart_data['solicitacoes_por_situacao']
 		self.assertEqual(requests['keys'], [status for status, _label in Solicitacao.STATUS_CHOICES])
 		self.assertEqual(requests['labels'], [label for _status, label in Solicitacao.STATUS_CHOICES])
-		self.assertEqual(requests['values'], [3, 2, 0])
+		self.assertEqual(requests['values'], [3, 2] + [0] * (len(Solicitacao.STATUS_CHOICES) - 2))

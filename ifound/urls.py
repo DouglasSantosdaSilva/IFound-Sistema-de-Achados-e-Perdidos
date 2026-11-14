@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin-dashboard/prazos/', views.admin_prazos, name='admin_prazos'),
     path('admin-dashboard/solicitacoes/', views.admin_solicitacoes, name='admin_solicitacoes'),
     path('admin-dashboard/solicitacoes/<int:id>/', views.admin_detalhar_solicitacao, name='admin_detalhar_solicitacao'),
+    path('admin-dashboard/solicitacoes/<int:id>/atualizar/', views.admin_atualizar_solicitacao, name='admin_atualizar_solicitacao'),
     path('login/', views.login_view, name='login'),
     path('cadastro/', views.cadastro_view, name='cadastro'),
     path('logout/', views.logout_view, name='logout'),

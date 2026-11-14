@@ -111,7 +111,14 @@
                         <div class="request-detail-content">
                             <span class="request-detail-label">Status</span>
 
-                            {% if solicitacao.status == 'aprovada' %}
+                            {% if solicitacao.status == 'entregue' %}
+
+                                <span class="status-badge status-encontrado">
+                                    <i class="bi bi-check-circle"></i>
+                                    Entregue
+                                </span>
+
+                            {% elif solicitacao.status == 'aprovada' %}
 
                                 <span class="status-badge status-encontrado">
                                     <i class="bi bi-check-circle"></i>
@@ -174,6 +181,32 @@
                     </div>
 
                 </div>
+
+                {% if solicitacao.status == 'aprovada' %}
+                    <div class="request-section" role="status">
+                        <div class="request-section-heading">
+                            <i class="bi bi-check-circle"></i>
+                            <h3>Solicitação aprovada</h3>
+                        </div>
+                        <p>Você pode comparecer para retirar o objeto. A entrega ainda aguarda confirmação presencial pelo administrador.</p>
+                    </div>
+                {% elif solicitacao.status == 'recusada' %}
+                    <div class="request-section" role="status">
+                        <div class="request-section-heading">
+                            <i class="bi bi-x-circle"></i>
+                            <h3>Solicitação recusada</h3>
+                        </div>
+                        <p><strong>Motivo:</strong> {{ solicitacao.motivo_recusa|default:"O administrador não informou um motivo." }}</p>
+                    </div>
+                {% elif solicitacao.status == 'entregue' %}
+                    <div class="request-section" role="status">
+                        <div class="request-section-heading">
+                            <i class="bi bi-check-circle"></i>
+                            <h3>Objeto entregue</h3>
+                        </div>
+                        <p>Entrega confirmada em {{ solicitacao.data_entrega|date:"d/m/Y H:i" }}.</p>
+                    </div>
+                {% endif %}
 
                 <!-- DESCRIÇÃO DO ITEM -->
                 <div class="request-section">

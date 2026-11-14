@@ -4657,6 +4657,7 @@ a.if-admin-nav-link:hover {
 }
 
 .if-admin-status.is-aprovada,
+.if-admin-status.is-entregue,
 .if-admin-status.is-aguardando_retirada {
     background: #e7f7ef;
     color: #147a4d;

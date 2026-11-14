@@ -15,11 +15,19 @@
         <span class="if-admin-section-caption">Registros reais enviados pelos usuários</span>
     </div>
 
+    <nav class="if-admin-request-filters" aria-label="Filtrar solicitações por situação">
+        {% for status, label, count in status_filters %}
+            <button type="button" class="if-admin-detail-link" data-request-filter="{{ status }}" aria-pressed="{% if status == 'todas' %}true{% else %}false{% endif %}">
+                {{ label }} ({{ count }})
+            </button>
+        {% endfor %}
+    </nav>
+
     <div class="if-admin-panel-card if-admin-table-card">
         <div class="if-admin-table-scroll">
             <table class="if-admin-table if-admin-requests-table">
                 <thead>
-                    <tr>
+                    <tr data-request-status="{{ solicitacao.status }}">
                         <th scope="col">Solicitante</th>
                         <th scope="col">Item</th>
                         <th scope="col">Data da solicitação</th>
@@ -64,4 +72,22 @@
         </div>
     </div>
 </section>
+<script>
+    (() => {
+        const filters = document.querySelectorAll('[data-request-filter]');
+        const rows = document.querySelectorAll('[data-request-status]');
+
+        filters.forEach((filter) => {
+            filter.addEventListener('click', () => {
+                const selectedStatus = filter.dataset.requestFilter;
+                filters.forEach((button) => {
+                    button.setAttribute('aria-pressed', String(button === filter));
+                });
+                rows.forEach((row) => {
+                    row.hidden = selectedStatus !== 'todas' && row.dataset.requestStatus !== selectedStatus;
+                });
+            });
+        });
+    })();
+</script>
 {% endblock %}

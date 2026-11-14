@@ -170,12 +170,21 @@
                                             <!-- STATUS -->
                                             <td>
 
-                                                {% if solicitacao.status == 'aprovada' %}
+                                                {% if solicitacao.status == 'entregue' %}
+
+                                                    <span class="status-badge status-encontrado">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        Entregue
+                                                    </span>
+                                                    <small>Entrega confirmada presencialmente.</small>
+
+                                                {% elif solicitacao.status == 'aprovada' %}
 
                                                     <span class="status-badge status-encontrado">
                                                         <i class="bi bi-check-circle"></i>
                                                         Aprovada
                                                     </span>
+                                                    <small>Aprovada. Você pode comparecer para retirar o item; a entrega ainda aguarda confirmação presencial.</small>
 
                                                 {% elif solicitacao.status == 'recusada' %}
 
@@ -183,6 +192,9 @@
                                                         <i class="bi bi-x-circle"></i>
                                                         Recusada
                                                     </span>
+                                                    {% if solicitacao.motivo_recusa %}
+                                                        <small>Motivo: {{ solicitacao.motivo_recusa }}</small>
+                                                    {% endif %}
 
                                                 {% else %}
 
