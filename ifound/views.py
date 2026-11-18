@@ -18,7 +18,7 @@ from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
 from django.db import connection, transaction
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import Http404, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse
 from django.urls import reverse
 
 from .models import Perfil, Item, Solicitacao
@@ -524,6 +524,49 @@ def admin_prazos(request):
 @login_required
 def admin_solicitacoes(request):
     return _render_admin_page(request, 'admin_requests.html', _get_admin_requests_context)
+
+
+@login_required
+def admin_consultar_perfil_solicitante(request, user_id):
+    if not _has_admin_dashboard_access(request.user):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse(
+                {'success': False, 'message': 'Você não tem permissão para consultar este perfil.'},
+                status=403,
+            )
+        return HttpResponseForbidden('Você não tem permissão para consultar este perfil.')
+
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        if is_ajax:
+            return JsonResponse(
+                {'success': False, 'message': 'Usuário não encontrado.'},
+                status=404,
+            )
+        raise Http404('Usuário não encontrado.')
+
+    perfil = Perfil.objects.filter(user=user).first()
+    profile_data = {
+        'nome_completo': (
+            (perfil.nome_completo if perfil else None)
+            or user.get_full_name()
+            or user.username
+        ),
+        'matricula': user.username,
+        'email': user.email or 'Não informado',
+        'curso': (perfil.curso if perfil else None) or 'Não informado',
+        'turma': (perfil.turma if perfil else None) or 'Não informada',
+        'vinculo': (perfil.vinculo if perfil else None) or 'Não informado',
+    }
+
+    if is_ajax:
+        return JsonResponse({'success': True, 'perfil': profile_data})
+
+    return render(request, 'admin_user_profile.html', {'perfil_consultado': profile_data})
 
 
 def _get_admin_deadlines_context():

@@ -6,7 +6,7 @@
 {% block admin_badge %}{{ solicitacoes|length }} solicitação(ões){% endblock %}
 
 {% block admin_page_content %}
-<section class="if-admin-section" aria-labelledby="adminRequestsTitle">
+<section class="if-admin-section" id="adminRequestsList" aria-labelledby="adminRequestsTitle">
     <div class="if-admin-section-heading">
         <div>
             <p class="if-admin-section-kicker">GERENCIAMENTO</p>
@@ -39,7 +39,15 @@
                 <tbody>
                     {% for solicitacao in solicitacoes %}
                         <tr>
-                            <td>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</td>
+                            <td>
+                                <span>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</span>
+                                <div>
+                                    <span class="if-admin-muted-value">Matrícula: </span>
+                                    <a class="if-admin-detail-link" href="{% url 'admin_consultar_perfil_solicitante' solicitacao.solicitante.id %}" data-admin-profile-link>
+                                        {{ solicitacao.solicitante.username }}
+                                    </a>
+                                </div>
+                            </td>
                             <td>{{ solicitacao.item.nome }}</td>
                             <td>{{ solicitacao.data_solicitacao|date:"d/m/Y H:i" }}</td>
                             <td>
@@ -72,10 +80,110 @@
         </div>
     </div>
 </section>
+<section class="if-admin-section" id="adminSolicitantProfile" aria-labelledby="adminSolicitantProfileTitle" hidden>
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">CONSULTA DO USUÁRIO</p>
+            <h2 id="adminSolicitantProfileTitle">Perfil do solicitante</h2>
+        </div>
+    </div>
+    <article class="if-admin-panel-card if-admin-request-info">
+        <div>
+            <span>Nome completo</span>
+            <strong data-profile-field="nome_completo"></strong>
+        </div>
+        <div>
+            <span>Matrícula</span>
+            <strong data-profile-field="matricula"></strong>
+        </div>
+        <div>
+            <span>E-mail</span>
+            <strong data-profile-field="email"></strong>
+        </div>
+        <div>
+            <span>Curso</span>
+            <strong data-profile-field="curso"></strong>
+        </div>
+        <div>
+            <span>Turma</span>
+            <strong data-profile-field="turma"></strong>
+        </div>
+        <div>
+            <span>Vínculo</span>
+            <strong data-profile-field="vinculo"></strong>
+        </div>
+    </article>
+    <div class="if-admin-request-back">
+        <a class="if-admin-detail-link" href="{% url 'admin_solicitacoes' %}" id="adminSolicitantProfileBack">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para solicitações
+        </a>
+    </div>
+</section>
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 <script>
     (() => {
+        const requestList = document.getElementById('adminRequestsList');
+        const profileSection = document.getElementById('adminSolicitantProfile');
+        const backLink = document.getElementById('adminSolicitantProfileBack');
+        const toastContainer = document.getElementById('toast-container');
         const filters = document.querySelectorAll('[data-request-filter]');
         const rows = document.querySelectorAll('[data-request-status]');
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-error';
+            toast.textContent = message;
+            toastContainer.append(toast);
+            window.setTimeout(() => toast.remove(), 4000);
+        }
+
+        async function loadProfile(url, updateHistory) {
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || 'Não foi possível consultar o perfil.');
+                }
+
+                Object.entries(result.perfil).forEach(([field, value]) => {
+                    const target = profileSection.querySelector(`[data-profile-field="${field}"]`);
+                    if (target) target.textContent = value;
+                });
+                requestList.hidden = true;
+                profileSection.hidden = false;
+                if (updateHistory) {
+                    window.history.pushState({ adminSolicitantProfile: true }, '', url);
+                }
+            } catch (error) {
+                showToast(error.message || 'Não foi possível conectar ao servidor.');
+            }
+        }
+
+        document.querySelectorAll('[data-admin-profile-link]').forEach((link) => {
+            link.addEventListener('click', (event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                loadProfile(link.href, true);
+            });
+        });
+
+        backLink.addEventListener('click', (event) => {
+            if (window.history.state?.adminSolicitantProfile) {
+                event.preventDefault();
+                window.history.back();
+            }
+        });
+
+        window.addEventListener('popstate', (event) => {
+            if (event.state?.adminSolicitantProfile) {
+                loadProfile(window.location.href, false);
+            } else {
+                profileSection.hidden = true;
+                requestList.hidden = false;
+            }
+        });
 
         filters.forEach((filter) => {
             filter.addEventListener('click', () => {

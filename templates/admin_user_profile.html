@@ -1,0 +1,48 @@
+{% extends 'base_admin.html' %}
+
+{% block admin_document_title %}Perfil do solicitante{% endblock %}
+{% block admin_heading %}Perfil do solicitante{% endblock %}
+{% block admin_description %}Consulta dos dados cadastrais do usuário solicitante.{% endblock %}
+{% block admin_badge %}Consulta de usuário{% endblock %}
+
+{% block admin_page_content %}
+<section class="if-admin-section" aria-labelledby="adminSolicitantProfileTitle">
+    <div class="if-admin-section-heading">
+        <div>
+            <p class="if-admin-section-kicker">CONSULTA DO USUÁRIO</p>
+            <h2 id="adminSolicitantProfileTitle">{{ perfil_consultado.nome_completo }}</h2>
+        </div>
+    </div>
+    <article class="if-admin-panel-card if-admin-request-info">
+        <div>
+            <span>Nome completo</span>
+            <strong>{{ perfil_consultado.nome_completo }}</strong>
+        </div>
+        <div>
+            <span>Matrícula</span>
+            <strong>{{ perfil_consultado.matricula }}</strong>
+        </div>
+        <div>
+            <span>E-mail</span>
+            <strong>{{ perfil_consultado.email }}</strong>
+        </div>
+        <div>
+            <span>Curso</span>
+            <strong>{{ perfil_consultado.curso }}</strong>
+        </div>
+        <div>
+            <span>Turma</span>
+            <strong>{{ perfil_consultado.turma }}</strong>
+        </div>
+        <div>
+            <span>Vínculo</span>
+            <strong>{{ perfil_consultado.vinculo }}</strong>
+        </div>
+    </article>
+    <div class="if-admin-request-back">
+        <a class="if-admin-detail-link" href="{% url 'admin_solicitacoes' %}">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar para solicitações
+        </a>
+    </div>
+</section>
+{% endblock %}

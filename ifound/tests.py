@@ -651,6 +651,69 @@ class AdminDashboardPagesTests(TestCase):
 			f'class="if-admin-nav-link is-active" href="{reverse("admin_solicitacoes")}"',
 		)
 
+	def test_admin_can_consult_requester_profile_from_requests_page(self):
+		requester = User.objects.create_user(
+			username='202612345',
+			first_name='Ana',
+			last_name='Silva',
+			email='ana@example.com',
+			password='test-password',
+		)
+		Perfil.objects.create(
+			user=requester,
+			nome_completo='Ana da Silva',
+			curso='Informática',
+			turma='2026.1',
+		)
+		item = Item.objects.create(
+			nome='Caderno',
+			descricao='Caderno azul',
+			local='Biblioteca',
+			data_registro=date(2026, 10, 10),
+			usuario=self.admin,
+		)
+		Solicitacao.objects.create(
+			item=item,
+			solicitante=requester,
+			foto_comprovante='comprovantes/perfil.jpg',
+		)
+
+		list_response = self.client.get(reverse('admin_solicitacoes'))
+		profile_url = reverse('admin_consultar_perfil_solicitante', args=[requester.id])
+		profile_response = self.client.get(profile_url)
+		ajax_response = self.client.get(
+			profile_url,
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+		self.assertContains(list_response, f'href="{profile_url}"')
+		self.assertContains(list_response, '202612345')
+		self.assertEqual(profile_response.status_code, 200)
+		self.assertContains(profile_response, 'Ana da Silva')
+		self.assertContains(profile_response, 'ana@example.com')
+		self.assertContains(profile_response, 'Informática')
+		self.assertContains(profile_response, '2026.1')
+		self.assertContains(profile_response, reverse('admin_solicitacoes'))
+		self.assertNotContains(profile_response, 'Editar dados')
+		self.assertEqual(ajax_response.status_code, 200)
+		self.assertEqual(ajax_response.json()['perfil'], {
+			'nome_completo': 'Ana da Silva',
+			'matricula': '202612345',
+			'email': 'ana@example.com',
+			'curso': 'Informática',
+			'turma': '2026.1',
+			'vinculo': 'Aluno(a)',
+		})
+
+	def test_admin_profile_lookup_handles_missing_users(self):
+		response = self.client.get(
+			reverse('admin_consultar_perfil_solicitante', args=[99999]),
+			HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+		)
+
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json()['message'], 'Usuário não encontrado.')
+
 	def test_admin_deadlines_show_real_dates_and_existing_classifications(self):
 		today = date(2026, 10, 15)
 		near_due_item = Item.objects.create(
@@ -708,10 +771,11 @@ class AdminDashboardPagesTests(TestCase):
 			'admin_indicadores',
 			'admin_prazos',
 			'admin_solicitacoes',
+			'admin_consultar_perfil_solicitante',
 			'admin_detalhar_solicitacao',
 		):
 			with self.subTest(page=url_name):
-				if url_name == 'admin_detalhar_solicitacao':
+				if url_name in {'admin_detalhar_solicitacao', 'admin_consultar_perfil_solicitante'}:
 					response = self.client.get(reverse(url_name, args=[1]))
 				else:
 					response = self.client.get(reverse(url_name))
