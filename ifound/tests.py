@@ -714,6 +714,27 @@ class AdminDashboardPagesTests(TestCase):
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json()['message'], 'Usuário não encontrado.')
 
+	def test_admin_requests_show_matricula_only_once_when_requester_has_no_name(self):
+		requester = User.objects.create_user(username='202698765', password='test-password')
+		item = Item.objects.create(
+			nome='Estojo',
+			descricao='Estojo preto',
+			local='Sala',
+			data_registro=date(2026, 10, 10),
+			usuario=self.admin,
+		)
+		Solicitacao.objects.create(
+			item=item,
+			solicitante=requester,
+			foto_comprovante='comprovantes/estojo.jpg',
+		)
+
+		response = self.client.get(reverse('admin_solicitacoes'))
+
+		self.assertContains(response, f'href="{reverse("admin_consultar_perfil_solicitante", args=[requester.id])}"')
+		self.assertContains(response, 'Matrícula: ')
+		self.assertEqual(response.content.decode().count('202698765'), 1)
+
 	def test_admin_deadlines_show_real_dates_and_existing_classifications(self):
 		today = date(2026, 10, 15)
 		near_due_item = Item.objects.create(

@@ -40,7 +40,9 @@
                     {% for solicitacao in solicitacoes %}
                         <tr>
                             <td>
-                                <span>{{ solicitacao.solicitante.get_full_name|default:solicitacao.solicitante.username }}</span>
+                                {% if solicitacao.solicitante.get_full_name %}
+                                    <span>{{ solicitacao.solicitante.get_full_name }}</span>
+                                {% endif %}
                                 <div>
                                     <span class="if-admin-muted-value">Matrícula: </span>
                                     <a class="if-admin-detail-link" href="{% url 'admin_consultar_perfil_solicitante' solicitacao.solicitante.id %}" data-admin-profile-link>
