@@ -147,27 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ==========================================
-    // RECUPERAÇÃO DE SENHA
-    // ==========================================
-
-    const forgotPasswordLink =
-        document.querySelector('.forgot-password');
-
-    if (forgotPasswordLink) {
-
-        forgotPasswordLink.addEventListener('click', (event) => {
-
-            event.preventDefault();
-
-            alert(
-                'A recuperação de senha ainda não está disponível. ' +
-                'Entre em contato com a administração do iFound.'
-            );
-        });
-    }
-
-
-    // ==========================================
     // VALIDAÇÃO DOS CAMPOS
     // ==========================================
 

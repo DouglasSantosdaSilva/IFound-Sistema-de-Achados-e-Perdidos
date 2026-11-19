@@ -1,4 +1,8 @@
-from io import BytesIO
+from contextlib import redirect_stdout
+from email import message_from_string
+from email.header import decode_header, make_header
+from io import BytesIO, StringIO
+import re
 from datetime import date, datetime, timedelta
 import tempfile
 from unittest.mock import patch
@@ -363,6 +367,101 @@ class PasswordChangeTests(TestCase):
 		self.assertTrue(self.user.check_password('New-safe-pass-99'))
 		self.assertEqual(self.client.session['_auth_user_id'], str(self.user.pk))
 		self.assertEqual(self.client.get(reverse('perfil')).status_code, 200)
+
+
+class PasswordResetFlowTests(TestCase):
+	def setUp(self):
+		self.user = User.objects.create_user(
+			username='password-reset-user',
+			email='reset-user@example.com',
+			password='Old-safe-password-19',
+		)
+		self.reset_url = reverse('password_reset')
+
+	@override_settings(
+		EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend',
+		DEFAULT_FROM_EMAIL='noreply@ifound.local',
+	)
+	def test_reset_email_is_printed_and_password_can_be_changed_once(self):
+		output = StringIO()
+		with redirect_stdout(output):
+			response = self.client.post(self.reset_url, {'email': self.user.email})
+
+		self.assertRedirects(response, reverse('password_reset_done'))
+		subject = make_header(decode_header(message_from_string(output.getvalue())['Subject']))
+		self.assertEqual(str(subject), 'Redefinição de senha do iFound')
+		self.assertIn(self.user.email, output.getvalue())
+		reset_link = re.search(r'http://testserver/\S+', output.getvalue()).group(0).rstrip('.,')
+		confirm_response = self.client.get(reset_link, follow=True)
+		self.assertEqual(confirm_response.status_code, 200)
+		self.assertContains(confirm_response, 'name="new_password1"')
+		self.assertContains(confirm_response, 'name="new_password2"')
+		confirm_url = confirm_response.request['PATH_INFO']
+
+		new_password = 'New-unique-iFound-password-739!'
+		response = self.client.post(
+			confirm_url,
+			{
+				'new_password1': new_password,
+				'new_password2': new_password,
+			},
+		)
+
+		self.assertRedirects(response, reverse('password_reset_complete'))
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.check_password(new_password))
+		self.assertFalse(self.user.check_password('Old-safe-password-19'))
+		self.assertEqual(self.client.get(reset_link).status_code, 200)
+		self.assertContains(self.client.get(reset_link), 'Link inválido ou expirado')
+
+		self.client.logout()
+		old_login = self.client.post(
+			reverse('login'),
+			{'username': self.user.username, 'password': 'Old-safe-password-19'},
+		)
+		self.assertEqual(old_login.status_code, 200)
+		new_login = self.client.post(
+			reverse('login'),
+			{'username': self.user.username, 'password': new_password},
+		)
+		self.assertRedirects(new_login, reverse('perfil'))
+
+	def test_reset_response_does_not_reveal_if_email_exists(self):
+		known_response = self.client.post(self.reset_url, {'email': self.user.email})
+		output = StringIO()
+		with redirect_stdout(output):
+			unknown_response = self.client.post(
+				self.reset_url,
+				{'email': 'unknown@example.com'},
+			)
+
+		self.assertRedirects(known_response, reverse('password_reset_done'))
+		self.assertRedirects(unknown_response, reverse('password_reset_done'))
+		self.assertEqual(output.getvalue(), '')
+		self.assertContains(
+			self.client.get(reverse('password_reset_done')),
+			'Se houver uma conta associada',
+		)
+
+	def test_reset_pages_are_reachable_and_login_links_to_reset_form(self):
+		login_response = self.client.get(reverse('login'))
+		form_response = self.client.get(self.reset_url)
+		done_response = self.client.get(reverse('password_reset_done'))
+		complete_response = self.client.get(reverse('password_reset_complete'))
+		invalid_link_response = self.client.get(
+			reverse(
+				'password_reset_confirm',
+				kwargs={'uidb64': 'invalid', 'token': 'invalid-token'},
+			)
+		)
+
+		self.assertContains(login_response, f'href="{self.reset_url}"')
+		self.assertEqual(form_response.status_code, 200)
+		self.assertContains(form_response, 'name="email"')
+		self.assertEqual(done_response.status_code, 200)
+		self.assertEqual(complete_response.status_code, 200)
+		self.assertEqual(invalid_link_response.status_code, 200)
+		self.assertContains(invalid_link_response, 'Link inválido ou expirado')
 
 
 class ItemDeadlineTests(SimpleTestCase):
