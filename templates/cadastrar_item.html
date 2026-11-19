@@ -82,7 +82,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="data" class="form-label">Data</label>
+                        <label for="data" class="form-label">Data do cadastro</label>
                         <input
                             type="date"
                             name="data"
@@ -104,7 +104,7 @@
                     </div>
 
                     <div class="form-group" id="dataEncontradoGroup" {% if not edit_mode or not item or item.status != 'achei' %}hidden{% endif %}>
-                        <label for="data_encontrado" class="form-label">Data em que encontrou</label>
+                        <label for="data_encontrado" class="form-label">Data em que o objeto foi encontrado</label>
                         <input
                             type="date"
                             name="data_encontrado"
@@ -112,7 +112,7 @@
                             class="form-input"
                             value="{% if edit_mode and item %}{{ item.data_encontrado|date:'Y-m-d' }}{% endif %}"
                         >
-                        <small class="field-hint">Informe quando o objeto foi efetivamente encontrado.</small>
+                        <small class="field-hint">Informe a data em que o objeto foi efetivamente encontrado.</small>
                     </div>
                 </div>
 
