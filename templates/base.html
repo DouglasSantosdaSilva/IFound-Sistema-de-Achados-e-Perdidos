@@ -41,8 +41,11 @@
         <div class="navbar-container">
             <div class="navbar-brand-section">
                 <a href="{% url 'index' %}" class="navbar-brand">
-                    <span class="navbar-logo">IFound</span>
-                    <span class="navbar-subtitle">Achados e Perdidos</span>
+                    <img class="navbar-brand-image" src="{% get_media_prefix %}logo/logo.png" alt="">
+                    <span class="navbar-brand-copy">
+                        <span class="navbar-logo">IFound</span>
+                        <span class="navbar-subtitle">Achados e Perdidos</span>
+                    </span>
                 </a>
             </div>
             <nav class="navbar-nav-wrap" aria-label="Menu principal">
