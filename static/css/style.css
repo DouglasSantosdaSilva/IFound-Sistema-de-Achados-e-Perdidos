@@ -399,6 +399,10 @@ button {
     font-size: 1em;
 }
 
+i.section-icon.bi-box-seam {
+    color: var(--color-primary);
+}
+
 .section-description {
     font-size: 16px;
     color: var(--color-text-secondary);
